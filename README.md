@@ -1,6 +1,8 @@
 # cloudburst
 a python package for computational design by CONCURRENT STUDIO™
 
+[![Coverage Status](https://coveralls.io/repos/github/concurrent-studio/cloudburst/badge.svg?branch=master)](https://coveralls.io/github/concurrent-studio/cloudburst?branch=master)
+
 ## Installation
 For local installation, run `pip3 install -e .`
 

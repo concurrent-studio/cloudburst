@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Instagram module for cloudburst """
+"""
+Instagram Scraper
+=================
+.. autosummary::
+   :toctree: generated/
+
+   Instagram
+   download_instagram_by_shortcode
+"""
 
 import json
 import requests
@@ -8,15 +16,19 @@ from datetime import datetime
 from urllib.parse import urlencode, parse_qs
 from cloudburst import vision as cbv
 
+__all__ = ['Instagram', 'download_instagram_by_shortcode']
+
+
 def instagram_query(hash, variables):
     query_url = "https://www.instagram.com/graphql/query/?{}".format(
         urlencode({
-            'query_hash': hash, 
+            'query_hash': hash,
             'variables': json.dumps(variables, separators=(',', ':'))
         })
     )
     page_data = json.loads(requests.get(query_url).text)
     return page_data
+
 
 def download_post(node, get_all_info=False):
     node_shortcode = node["shortcode"]
@@ -40,7 +52,8 @@ def download_post(node, get_all_info=False):
     }
 
     if node_typename == "GraphSidecar":
-        for idx, node_sidecar in enumerate(node["edge_sidecar_to_children"]["edges"]):
+        for idx, node_sidecar in enumerate(
+                node["edge_sidecar_to_children"]["edges"]):
             node_sidecar_typename = node_sidecar["__typename"]
 
             media_data = {
@@ -49,20 +62,23 @@ def download_post(node, get_all_info=False):
                 "typename": node_sidecar_typename,
                 "dimensions": node_sidecar["dimensions"],
                 "accessibility_caption": node_sidecar["accessibility_caption"],
-                "tagged_users": node_sidecar["edge_media_to_tagged_user"]["edges"]
-            }
-            
+                "tagged_users": node_sidecar["edge_media_to_tagged_user"]["edges"]}
+
             if node_sidecar_typename == "GraphImage":
                 node_url = node_sidecar["display_resources"][-1]["src"]
                 media_data["content_url"] = node_url
-                cbv.download_image(node_url, "{}_{}.jpg".format(node_shortcode, idx))
+                cbv.download_image(
+                    node_url, "{}_{}.jpg".format(
+                        node_shortcode, idx))
             elif node_typename == "GraphVideo":
                 node_url = node["video_url"]
                 media_data["content_url"] = node_url
-                cbv.download_image(node_url, "{}_{}.mp4".format(node_shortcode, idx))
+                cbv.download_image(
+                    node_url, "{}_{}.mp4".format(
+                        node_shortcode, idx))
 
             data_out["media"].append(media_data)
-            
+
     else:
         media_data = {
             "content_url": "",
@@ -78,15 +94,35 @@ def download_post(node, get_all_info=False):
             node_url = node["video_url"]
             media_data["content_url"] = node_url
             cbv.download_image(node_url, "{}.mp4".format(node_shortcode))
-        
+
         data_out["media"].append(media_data)
-        
+
     if get_all_info:
         with open("{}.json".format(node_shortcode), "w") as f:
             f.write(json.dumps(data_out, indent=4))
 
+def download_instagram_by_shortcode(shortcode):
+    """Download media and data from a posed given its shortcode 
+
+    :param shortcode: A given post's shortcode
+    :type username: str
+    """
+    # Retrieve JSON data for post
+    data_url = "https://www.instagram.com/p/{}/?__a=1".format(shortcode)
+    data = json.loads(requests.get(data_url).text)["graphql"]["shortcode_media"]
+    download_post(data, True)
+
+
 class Instagram:
+    """Scrape the data of an Instagram User 
+
+    :param username: A given user's username
+    :type username: str
+    """
+
     def __init__(self, username):
+        """Constructor method
+        """
         # Retrieve JSON profile for user
         data_url = "https://www.instagram.com/{}/?__a=1".format(username)
         page_data = json.loads(requests.get(data_url).text)["graphql"]["user"]
@@ -96,7 +132,7 @@ class Instagram:
         self.id = page_data["id"]
         self.full_name = page_data["full_name"]
         self.biography = page_data["biography"]
-        self.external_url = page_data["external_url"]  
+        self.external_url = page_data["external_url"]
         self.follower_count = page_data["edge_followed_by"]["count"]
         self.following_count = page_data["edge_follow"]["count"]
         self.has_ar_effects = page_data["has_ar_effects"]
@@ -114,24 +150,28 @@ class Instagram:
         self.profile_pic_url_hd = page_data["profile_pic_url_hd"]
         self.connected_fb_page = page_data["connected_fb_page"]
         self.media_count = instagram_query(
-                "d496eb541e5c789274548bf473cc553e",
-                {
-                    "id": self.id, 
-                    "first": 1,
-                }
-            )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+            "d496eb541e5c789274548bf473cc553e",
+            {
+                "id": self.id,
+                "first": 1,
+            }
+        )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
 
     def download_profile_picture(self):
+        """Downloads an Instagram user's profile picure in its highest quality
+        """
         cbv.download_image(self.profile_pic_url_hd, "{}.jpg".format(self.id))
-    
+
     def download_posts(self):
+        """Downloads all posts from an Instagram user
+        """
         end_cursor = ""
         count = 0
         while(count < self.media_count):
             response = instagram_query(
                 "d496eb541e5c789274548bf473cc553e",
                 {
-                    "id": self.id, 
+                    "id": self.id,
                     "first": 50,
                     "after": end_cursor
                 }

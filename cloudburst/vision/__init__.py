@@ -8,7 +8,7 @@ from .image import (
 )
 
 from .facial_features import (
-    crop_faces, 
-    crop_eyes, 
+    crop_faces,
+    crop_eyes,
     face_match
 )
