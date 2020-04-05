@@ -8,10 +8,19 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install pytest sphinx sphinx_bootstrap_theme
+          command: pip install sphinx pytest 
       - run:
           name: Test
           command: pytest
+
+  docs-build:
+    docker:
+      - image: python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install sphinx sphinx_bootstrap_theme pytest 
       - run:
           name: Build docs
           command: cd docs/ && make html
