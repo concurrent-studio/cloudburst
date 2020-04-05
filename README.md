@@ -1,6 +1,5 @@
 # cloudburst ⛈
 [![CircleCI](https://circleci.com/gh/concurrent-studio/cloudburst.svg?style=shield)](https://circleci.com/gh/concurrent-studio/cloudburst)
-[![Coverage Status](https://coveralls.io/repos/github/concurrent-studio/cloudburst/badge.svg?branch=master)](https://coveralls.io/github/concurrent-studio/cloudburst?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4bb39fbbdf594ef5915003e824c323ef)](https://www.codacy.com/gh/concurrent-studio/cloudburst?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=concurrent-studio/cloudburst&amp;utm_campaign=Badge_Grade)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 

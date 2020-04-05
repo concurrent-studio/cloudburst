@@ -1,8 +1,16 @@
 version: 2.1
 orbs:
-  codecov: codecov/codecov@1.0.4
+  coverage-reporter: codacy/coverage-reporter@7.6.9
 
 jobs:
+  codacy-coverage-report:
+    docker:
+      - image: 'circleci/openjdk:8-jdk'
+    steps:
+      - checkout
+      - run commands to generate the coverage result
+      - coverage-reporter/send_report
+
   test:
     docker:
       - image: python:3.7
@@ -26,8 +34,6 @@ jobs:
       - run:
           name: Build docs
           command: cd docs/ && make html
-      - codecov/upload:
-          file: .coverage
       - persist_to_workspace:
           root: docs/build
           paths: html
@@ -60,6 +66,7 @@ workflows:
       - docs-deploy:
           requires:
             - test
+            - codacy-coverage-report
             - docs-build
           filters:
             branches:
