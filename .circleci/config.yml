@@ -20,7 +20,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install sphinx sphinx_bootstrap_theme pytest 
+          command: pip install sphinx sphinx_bootstrap_theme pytest numpydoc
       - run:
           name: Build docs
           command: cd docs/ && make html
