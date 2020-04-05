@@ -1,40 +1,73 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" core functions of cloudburst """
+"""
+Core Functions
+==============
+A variety of general, reusable functions for cloudburst
+
+.. autosummary::
+    :toctree: generated/
+
+    query
+    sort_tuples
+"""
 
 from glob import glob
 
-"""
-query
-Query a folder by filetype
-
-arguments:
-    folder      folder to query
-    ext         extension to query for
-
-returns:
-    filepaths   list of filepaths matching query
-"""
+__all__ = [
+    'query',
+    'sort_tuples'
+]
 
 
 def query(folder, ext):
+    """Query folder by filetype
+
+    Parameters
+    ----------
+    folder : str
+        the folder to search within
+
+    ext : str
+        extension to locate files by
+
+    Return
+    ------
+    filepaths : list
+        a list of filepaths to query matches
+
+    Examples
+    --------
+    Find all images ending in ".jpg" in "./images" folder
+    >>> import cloudburst as cb
+    >>> matches = cb.query("images", "jpg")
+    >>> print(matches)
+    """
     filepaths = glob("{}/*.{}".format(folder, ext))
     return filepaths
 
 
-"""
-sort_tuples
-Sort a list of tuples by the second element in each tuple
-
-arguments:
-    tuple_list      a list of tuples
-
-returns:
-    tuple_list      sorted list of tuples
-"""
-
-
 def sort_tuples(tuple_list):
+    """Sort a list of tuples by their second elements
+
+    Parameters
+    ----------
+    tuple_list : list
+        an unsorted list of tuples
+
+    Return
+    ------
+    tuple_list : list
+        a list of tuples sorted by their 2nd term
+
+    Examples
+    --------
+    Sort a list of (key, value) by their values
+    >>> import cloudburst as cb
+    >>> tl = [("CONCURRENT", 5), ("STUDIO", 2), ("TEST", 8)]
+    >>> tl = cb.tuple_list(tl)
+    >>> print(tl)
+    """
     list_length = len(tuple_list)
     for i in range(0, list_length):
         for j in range(0, list_length - i - 1):

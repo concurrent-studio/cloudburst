@@ -1,13 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" vision module for cloudburst """
+"""
+Vision
+======
+Manipulate, scrape, and analyze visual media
+
+Image
+-----
+.. autosummary::
+    :toctree: generated/
+
+    download_image
+    create_collage
+
+Face
+----
+.. autosummary::
+    :toctree: generated/
+
+    crop_faces
+    crop_eyes
+    face_match
+"""
 
 from .image import (
     download_image,
     create_collage
 )
 
-from .facial_features import (
+from .face import (
     crop_faces,
     crop_eyes,
     face_match

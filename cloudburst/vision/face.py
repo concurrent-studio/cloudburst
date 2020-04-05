@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" facial feature detection module for cloudburst """
+"""Facial feature detection and analysis"""
 
 import os
 import cv2
@@ -8,21 +8,28 @@ import face_recognition
 import numpy as np
 from PIL import Image
 
+__all__ = [
+    'crop_faces',
+    'crop_eyes',
+    'face_match'
+]
+
 this_folder = os.path.abspath(os.path.dirname(__file__))
-
-"""
-get_eyes_from_image
-Get all eyes within an image
-
-arguments:
-    image_path      path (or list of paths) to an image(s)
-
-returns:
-    eyes            list of images of eyes
-"""
 
 
 def get_eyes_from_image(image_path):
+    """Get all eyes within an image
+
+    Parameters
+    ----------
+    image_path : str
+        filepath to an image file
+
+    Returns
+    -------
+    eyes : list
+        list of images of eyes in the given image
+    """
     face_cascade = cv2.CascadeClassifier(
         "{}/haarcascade_frontalface_default.xml".format(this_folder))
     eyes_cascade = cv2.CascadeClassifier(
@@ -49,16 +56,26 @@ def get_eyes_from_image(image_path):
     return eyes
 
 
-"""
-crop_eyes
-Crop and save all faces within a given image
-
-arguments:
-    image_path      path (or list of paths) to an image(s)
-"""
-
-
 def crop_eyes(image_path):
+    """Crop and save all eyes within a given image
+
+    Parameters
+    ----------
+    image_path : str
+        path (or list of paths) to an image(s)
+
+    Examples
+    --------
+    Get and crop the eyes of all images in './images' folder
+
+    .. code-block:: python
+
+       import cloudburst as cb
+       from cloudburst import vision as cbv
+
+       paths = cb.query('images', 'jpg')
+       cbv.crop_eyes(paths)
+    """
     if isinstance(image_path, list):
         for path in image_path:
             eyes = get_eyes_from_image(path)
@@ -74,19 +91,19 @@ def crop_eyes(image_path):
             cv2.imwrite(filename, eye)
 
 
-"""
-get_faces_from_image
-Get all faces within an image
-
-arguments:
-    image_path      path (or list of paths) to an image(s)
-
-returns:
-    faces           list of images of faces
-"""
-
-
 def get_faces_from_image(image_path):
+    """Get all faces within an image
+
+    Parameters
+    ----------
+    image_path : str
+        filepath to an image file
+
+    Returns
+    -------
+    faces : list
+        list of images of faces in the given image
+    """
     faces = []
 
     image = face_recognition.load_image_file(image_path)
@@ -100,16 +117,26 @@ def get_faces_from_image(image_path):
     return faces
 
 
-"""
-crop_faces
-Crop and save all faces within a given image
-
-arguments:
-    image_path      path (or list of paths) to an image(s)
-"""
-
-
 def crop_faces(image_path):
+    """Crop and save all faces within a given image
+
+    Parameters
+    ----------
+    image_path : str
+        path (or list of paths) to an image(s)
+
+    Examples
+    --------
+    Get and crop the faces of all images in './images' folder
+
+    .. code-block:: python
+
+       import cloudburst as cb
+       from cloudburst import vision as cbv
+
+       paths = cb.query('images', 'jpg')
+       cbv.crop_faces(paths)
+    """
     if isinstance(image_path, list):
         for path in image_path:
             faces = get_faces_from_image(path)
@@ -139,6 +166,35 @@ returns:
 
 
 def face_match(known_image_path, unknown_image_path):
+    """Find matched faces in an image or list of images
+
+    Parameters
+    ----------
+    known_image_path : str
+        filepath to image of known identity
+
+    unknown_image_path : str
+        path(s) to unknown images
+
+    Returns
+    -------
+    results : list
+        list of match results (True/False)
+
+    Examples
+    --------
+    Compare faces of all images in './images' folder to face of './obama.jpg'
+
+    .. code-block:: python
+
+       import cloudburst as cb
+       from cloudburst import vision as cbv
+
+       known = './obama.jpg'
+       paths = cb.query('images', 'jpg')
+       results = cbv.face_match(known, paths)
+       print(results)
+    """
     known_image = face_recognition.load_image_file(known_image_path)
     known_encoding = face_recognition.face_encodings(known_image)[0]
 

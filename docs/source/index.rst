@@ -1,21 +1,41 @@
-.. cloudburst documentation master file, created by
-   sphinx-quickstart on Sat Apr  4 11:14:26 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+cloudburst ⛈
+=============
+a computational design python package by CONCURRENT STUDIO™ founded
+with no particular focus
 
-Welcome to cloudburst's documentation!
-======================================
-
+Getting started
+---------------
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
    install
-   support
 
-Indices and tables
-==================
+Troubleshooting
+---------------
+For bug reports and technical issues, consult cloudburst's `Github Issues <https://github.com/concurrent-studio/cloudburst/issues>`_.
+
+API documentation
+-----------------
+.. toctree::
+    :maxdepth: 2
+
+    core
+    social
+    vision
+
+Advanced topics
+---------------
+.. toctree::
+    :maxdepth: 2
+
+    social_analytics
+
+Reference
+---------
+.. toctree::
+    :maxdepth: 2
+
+    changelog
+    glossary
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

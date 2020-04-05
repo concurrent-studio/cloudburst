@@ -7,35 +7,36 @@ from PIL import Image
 from datetime import datetime
 from cloudburst import sort_tuples
 
-"""
-download_image
-Download an image from a url
-
-arguments:
-    url         image to a url
-    filename    filename to save image to
-"""
+__all__ = [
+    'download_image',
+    'create_collage'
+]
 
 
 def download_image(url, filename):
+    """Download an image from a URL
+
+    Parameters
+    ----------
+    url : str
+        URL to image
+    filename : str
+        filename to save image to
+
+    Examples
+    --------
+    Download an image from www.thebrilliance.com and save as 'brilliance.jpg'
+
+    .. code-block:: python
+
+       from cloudburst import vision as cbv
+
+       url = 'https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316'
+
+       cbv.download_image(url, 'brilliance.jpg')
+    """
     with open(filename, "wb") as f:
         f.write(requests.get(url).content)
-
-
-"""
-create_collage
-Create a collage from a list of images
-
-arguments:
-    width       width of each collage
-    height      height of each collage
-    min_size    minimum size of images on canvas
-    image_list  list of images for canvas
-
-optional arguments:
-    func        custom function to operate on each image
-    blank_color color for blank image
-"""
 
 
 def create_collage(
@@ -48,6 +49,35 @@ def create_collage(
         255,
         255,
         255)):
+    """Create a collage from a list of images
+
+    Parameters
+    ----------
+    width : int
+        width of collage
+    height : int
+        height of collage
+    min_size : int
+        minimum allowable size of grid image
+    image_list : list
+        list of images for collage
+    func : function, optional
+        custom function to operate on each image
+    blank_color : tuple, optional
+        color for blank image
+
+    Examples
+    --------
+    Create collage of dimensions (1920, 1080) of images from './images' directory
+
+    .. code-block:: python
+
+       import cloudburst as cb
+       from cloudburst import vision as cbv
+
+       image_paths = cb.query('images', 'jpg')
+       cbv.create_collage(1920, 1080, 10, image_paths)
+    """
     image_count = len(image_list)
 
     min_dimension = width if width < height else height

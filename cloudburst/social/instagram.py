@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Instagram Scraper
-=================
-.. autosummary::
-   :toctree: generated/
-
-   Instagram
-   download_instagram_by_shortcode
-"""
+""" Scrape Instagram through its private API """
 
 import json
 import requests
@@ -16,7 +8,10 @@ from datetime import datetime
 from urllib.parse import urlencode, parse_qs
 from cloudburst import vision as cbv
 
-__all__ = ['Instagram', 'download_instagram_by_shortcode']
+__all__ = [
+    'Instagram',
+    'download_instagram_by_shortcode'
+]
 
 
 def instagram_query(hash, variables):
@@ -30,7 +25,7 @@ def instagram_query(hash, variables):
     return page_data
 
 
-def download_post(node, get_all_info=False):
+def download_post(node, download_data=False):
     node_shortcode = node["shortcode"]
     node_typename = node["__typename"]
 
@@ -97,31 +92,107 @@ def download_post(node, get_all_info=False):
 
         data_out["media"].append(media_data)
 
-    if get_all_info:
+    if download_data:
         with open("{}.json".format(node_shortcode), "w") as f:
             f.write(json.dumps(data_out, indent=4))
 
-def download_instagram_by_shortcode(shortcode):
-    """Download media and data from a posed given its shortcode 
 
-    :param shortcode: A given post's shortcode
-    :type username: str
+def download_instagram_by_shortcode(shortcode):
+    """Download media and data from a posed given its shortcode
+
+    Parameters
+    ----------
+    shortcode : str
+        shortcode from an Instagram post; see glossary for definition
+
+    Examples
+    --------
+    Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
+
+    .. code-block:: python
+
+       from cloudburst import social as cbs
+
+       cbs.download_instagram_by_shortcode("B-X0DDrj30s")
     """
     # Retrieve JSON data for post
     data_url = "https://www.instagram.com/p/{}/?__a=1".format(shortcode)
-    data = json.loads(requests.get(data_url).text)["graphql"]["shortcode_media"]
+    data = json.loads(requests.get(data_url).text)[
+        "graphql"]["shortcode_media"]
     download_post(data, True)
 
 
 class Instagram:
-    """Scrape the data of an Instagram User 
+    """Scrape the data of an Instagram User
 
-    :param username: A given user's username
-    :type username: str
+    Attributes
+    ----------
+    username : str
+        User's username
+    id : str
+        User's unique ID
+    full_name : str
+        User's full name
+    biography : str
+        User's biography
+    external_url : str
+        Linked site under user's biography
+    follower_count : int
+        Number of accounts following the user
+    following_count : int
+        Number of accounts user is following
+    has_ar_effects : bool
+        Does the account have any augmented reality effects
+    has_channel : bool
+        ?
+    has_blocked_viewer : bool
+        Has the account blocked any viewers
+    highlight_reel_count : int
+        Number of highlight reels owned by user
+    has_requested_viewer : bool
+        ?
+    is_business_account : bool
+        Is it a business account
+    business_category_name : str
+        Name of business category
+    category_id : str
+        ID of business category
+    overall_category_name : str
+        Name of overall category
+    is_joined_recently : bool
+        Did the user join recently
+    is_private : bool
+        Is the account private
+    is_verified : bool
+        Is the account verified
+    profile_pic_url_hd : str
+        URL to high defintion profile picture
+    connected_fb_page : str
+        Connected Facebook page
+    media_count : int
+        Number of posts by user
+
+    Examples
+    --------
+    Contruct new object for @pharrell, print bio, download profile image, download all media and data
+
+    .. code-block:: python
+
+       from cloudburst import social as cbs
+
+       pharrell = cbs.Instagram("pharrell") # instantiate new Instagram object
+       print(pharrell.bio) # print bio
+       pharrell.download_profile_picture() # download HD profile image
+       pharrell.download_posts(True) # download all posts and media
     """
 
     def __init__(self, username):
         """Constructor method
+
+        Parameters
+        ----------
+        username : str
+            any Instagram user's username
         """
         # Retrieve JSON profile for user
         data_url = "https://www.instagram.com/{}/?__a=1".format(username)
@@ -143,8 +214,8 @@ class Instagram:
         self.is_business_account = page_data["is_business_account"]
         self.business_category_name = page_data["business_category_name"]
         self.category_id = page_data["category_id"]
-        self.is_joined_recently = page_data["is_joined_recently"]
         self.overall_category_name = page_data["overall_category_name"]
+        self.is_joined_recently = page_data["is_joined_recently"]
         self.is_private = page_data["is_private"]
         self.is_verified = page_data["is_verified"]
         self.profile_pic_url_hd = page_data["profile_pic_url_hd"]
@@ -158,12 +229,16 @@ class Instagram:
         )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
 
     def download_profile_picture(self):
-        """Downloads an Instagram user's profile picure in its highest quality
-        """
+        """Download an Instagram user's profile picure in its highest quality"""
         cbv.download_image(self.profile_pic_url_hd, "{}.jpg".format(self.id))
 
-    def download_posts(self):
-        """Downloads all posts from an Instagram user
+    def download_posts(self, download_data):
+        """Download all posts from an Instagram user in their highest quality
+
+        Parameters
+        ----------
+        download_data : bool
+            download post data as well as media
         """
         end_cursor = ""
         count = 0
@@ -180,5 +255,5 @@ class Instagram:
             end_cursor = response["data"]["user"]["edge_owner_to_timeline_media"]["page_info"]["end_cursor"]
             edges = response["data"]["user"]["edge_owner_to_timeline_media"]["edges"]
             for node in edges:
-                download_post(node["node"], True)
+                download_post(node["node"], download_data)
                 count += 1

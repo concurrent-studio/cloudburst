@@ -1,61 +1,66 @@
-# cloudburst
-a python package for computational design by CONCURRENT STUDIO™
+# cloudburst ⛈
+a python package for computational design by [CONCURRENT STUDIO™](https://www.concurrent.studio)
 
-[![Coverage Status](https://coveralls.io/repos/github/concurrent-studio/cloudburst/badge.svg?branch=master)](https://coveralls.io/github/concurrent-studio/cloudburst?branch=master)
+[![License: CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-## Installation
-For local installation, run `pip3 install -e .`
+## ⏳ Installation
+### 🐍 Pip
+```bash
+pip3 install cloudburst
+```
 
-## Core Functions
-Example usage
+### 🗃 Source
+```bash
+git clone https://github.com/concurrent-studio/cloudburst.git
+cd cloudburst
+pip3 install -e .
+```
+
+## 📦 Modules + Submodules
+### 🛠 Core Functions
+#### Usage
 ```python
 import cloudburst as cb
-
-# Get all .jpg files in ./images folder
-jpgs = cb.query("./images", "jpg")
-
-# Create a list of tuples
-tuple_list = [("CONCURRENT", 2), ("STUDIO", 1)]
-# Sort list of tuples
-sorted_tuple_list = cb.sort_tuples(tuple_list)
 ```
 
-## Social
-Example usage
+#### Components
+- `query`
+    - Query a folder by filename extension
+- `sort_tuples`
+    - Sort a list of tuples by their second element
+
+### 📱 Social
+#### Usage
 ```python
 from cloudburst import social as cbs
-
-# Instantiate Instagram on username "instagram"
-ig = cbs.Instagram("instagram")
-# Print user's biography
-print(ig.biography)
-# Download user's profile picture
-ig.get_profile_picture()
-# Download all of user's posts
-ig.get_posts()
 ```
 
-## Vision
-Example usage
+#### Components
+- `Instagram`
+    - Class for scraping the data of an Instagram user
+    - `__init__`
+        - Constructor method
+    - `download_profile_picture`
+        - Download an Instagram user's profile picure in its highest quality
+    - `download_posts`
+        - Download all posts from an Instagram user
+- `download_instagram_by_shortcode`
+    - Download media and data from a posed given its shortcode 
+
+### 📹 Vision
+#### Usage
 ```python
 from cloudburst import vision as cbv
-
-# Get all .jpg files in ./images folder
-jpgs = cb.query("./images", "jpg")
-
-# Crop and save all faces in jpgs
-crop_faces(jpgs)
-# Crop and save all eyes in jpgs
-crop_eyes(jpgs)
-
-# Path to known image
-known_image_path = "./known.jpg"
-# Return list of True/False values for matches to known photo
-matches = face_match(known_image_path, jpgs)
-# Print whether or not photo is a path
-for idx, match in enumerate(matches):
-    print("{} is {}a match".format(jpgs[idx], "not " if match else ""))
-
-# Create and save collage from jpgs
-create_collage(1920, 1080, 10, jpgs)
 ```
+
+#### Components
+- `download_image`
+    - Download an image from a url
+- `create_collage`
+    - Create a collage from a list of images
+- `crop_faces`
+    - Crop and save all faces in a list of images
+- `crop_eyes`
+    - Crop and save all eyes in a list of images
+- `face_match`
+    - Compare a list of unknown faces against a known one
