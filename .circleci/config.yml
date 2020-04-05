@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install sphinx pytest 
+          command: pip install pytest sphinx sphinx_bootstrap_theme
       - run:
           name: Test
           command: pytest
