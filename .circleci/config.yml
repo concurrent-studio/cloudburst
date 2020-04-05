@@ -1,16 +1,6 @@
 version: 2.1
-orbs:
-  coverage-reporter: codacy/coverage-reporter@7.6.9
 
 jobs:
-  codacy-coverage-report:
-    docker:
-      - image: 'circleci/openjdk:8-jdk'
-    steps:
-      - checkout
-      - run commands to generate the coverage result
-      - coverage-reporter/send_report
-
   test:
     docker:
       - image: python:3.7
@@ -63,11 +53,9 @@ workflows:
     jobs:
       - test
       - docs-build
-      - codacy-coverage-report
       - docs-deploy:
           requires:
             - test
-            - codacy-coverage-report
             - docs-build
           filters:
             branches:
