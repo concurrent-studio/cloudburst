@@ -1,5 +1,7 @@
 version: 2
-    
+orbs:
+  coveralls: coveralls/coveralls@1.0.4
+
 jobs:
   test:
     docker:
@@ -29,7 +31,7 @@ jobs:
           paths: html
   docs-deploy:
     docker:
-      - image: node:8.10.0
+      - image: node:10.0.0
     steps:
       - checkout
       - attach_workspace:
@@ -37,6 +39,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "57:78:28:12:8d:ea:c6:4d:05:2f:a2:5e:4f:0b:98:67"
+      - coveralls/upload
       - run:
           name: Install and configure dependencies
           command: |
