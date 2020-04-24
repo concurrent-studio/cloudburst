@@ -7,10 +7,7 @@ from PIL import Image
 from datetime import datetime
 from cloudburst import sort_tuples
 
-__all__ = [
-    'download_image',
-    'create_collage'
-]
+__all__ = ["download_image", "create_collage"]
 
 
 def download_image(url, filename):
@@ -40,15 +37,8 @@ def download_image(url, filename):
 
 
 def create_collage(
-    width,
-    height,
-    min_size,
-    image_list,
-    func=None,
-    blank_color=(
-        255,
-        255,
-        255)):
+    width, height, min_size, image_list, func=None, blank_color=(255, 255, 255)
+):
     """Create a collage from a list of images
 
     Parameters
@@ -95,11 +85,7 @@ def create_collage(
             while unused_image_count > images_per_collage:
                 unused_image_count -= images_per_collage
                 collage_count += 1
-            sizes.append(
-                (size,
-                 unused_image_count,
-                 images_per_collage,
-                 collage_count))
+            sizes.append((size, unused_image_count, images_per_collage, collage_count))
 
     ideal_size = sort_tuples(sizes)[0]
 
@@ -108,19 +94,21 @@ def create_collage(
         print("Create collage {} of {}".format(c + 1, collage_count))
         timestamp = int(datetime.utcnow().timestamp())
         count_scale_value = c * ideal_size[2]
-        collage = Image.new('RGB', (width, height))
+        collage = Image.new("RGB", (width, height))
         x = 0
         y = 0
 
-        for image_path in image_list[count_scale_value:
-                                     count_scale_value + ideal_size[2]]:
+        for image_path in image_list[
+            count_scale_value : count_scale_value + ideal_size[2]
+        ]:
             if not func:
                 if func(image_path):
                     image = Image.open(image_path)
                     image = image.resize((ideal_size[0], ideal_size[0]))
                 else:
                     image = Image.new(
-                        'RGB', (ideal_size[0], ideal_size[0]), blank_color)
+                        "RGB", (ideal_size[0], ideal_size[0]), blank_color
+                    )
             else:
                 image = Image.open(image_path)
                 image = image.resize((ideal_size[0], ideal_size[0]))

@@ -23,13 +23,6 @@ Face
     face_match
 """
 
-from .image import (
-    download_image,
-    create_collage
-)
+from .image import download_image, create_collage
 
-from .face import (
-    crop_faces,
-    crop_eyes,
-    face_match
-)
+from .face import crop_faces, crop_eyes, face_match, get_landmarks, get_5_landmarks

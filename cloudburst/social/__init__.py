@@ -14,7 +14,4 @@ Instagram
     download_instagram_by_shortcode
 """
 
-from .instagram import (
-    Instagram,
-    download_instagram_by_shortcode
-)
+from .instagram import Instagram, download_instagram_by_shortcode

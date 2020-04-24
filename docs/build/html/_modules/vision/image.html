@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vision.image &#8212; cloudburst 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vision.image</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; image generation module for cloudburst &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">sort_tuples</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;download_image&quot;</span><span class="p">,</span> <span class="s2">&quot;create_collage&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="download_image"><a class="viewcode-back" href="../../generated/vision.download_image.html#vision.download_image">[docs]</a><span class="k">def</span> <span class="nf">download_image</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download an image from a URL</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to image</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save image to</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Download an image from www.thebrilliance.com and save as &#39;brilliance.jpg&#39;</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">       from cloudburst import vision as cbv</span>
+
+<span class="sd">       url = &#39;https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316&#39;</span>
+
+<span class="sd">       cbv.download_image(url, &#39;brilliance.jpg&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_collage"><a class="viewcode-back" href="../../generated/vision.create_collage.html#vision.create_collage">[docs]</a><span class="k">def</span> <span class="nf">create_collage</span><span class="p">(</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">image_list</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blank_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a collage from a list of images</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    width : int</span>
+<span class="sd">        width of collage</span>
+<span class="sd">    height : int</span>
+<span class="sd">        height of collage</span>
+<span class="sd">    min_size : int</span>
+<span class="sd">        minimum allowable size of grid image</span>
+<span class="sd">    image_list : list</span>
+<span class="sd">        list of images for collage</span>
+<span class="sd">    func : function, optional</span>
+<span class="sd">        custom function to operate on each image</span>
+<span class="sd">    blank_color : tuple, optional</span>
+<span class="sd">        color for blank image</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create collage of dimensions (1920, 1080) of images from &#39;./images&#39; directory</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">       import cloudburst as cb</span>
+<span class="sd">       from cloudburst import vision as cbv</span>
+
+<span class="sd">       image_paths = cb.query(&#39;images&#39;, &#39;jpg&#39;)</span>
+<span class="sd">       cbv.create_collage(1920, 1080, 10, image_paths)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_list</span><span class="p">)</span>
+
+    <span class="n">min_dimension</span> <span class="o">=</span> <span class="n">width</span> <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="n">height</span> <span class="k">else</span> <span class="n">height</span>
+    <span class="n">squares</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">min_dimension</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">width</span> <span class="o">%</span> <span class="n">s</span> <span class="o">==</span> <span class="n">height</span> <span class="o">%</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">squares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">get_squares</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="n">images_per_collage</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">*</span> <span class="n">size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">image_count</span> <span class="o">&gt;</span> <span class="n">images_per_collage</span><span class="p">:</span>
+            <span class="n">unused_image_count</span> <span class="o">=</span> <span class="n">image_count</span>
+            <span class="n">collage_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">unused_image_count</span> <span class="o">&gt;</span> <span class="n">images_per_collage</span><span class="p">:</span>
+                <span class="n">unused_image_count</span> <span class="o">-=</span> <span class="n">images_per_collage</span>
+                <span class="n">collage_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">unused_image_count</span><span class="p">,</span> <span class="n">images_per_collage</span><span class="p">,</span> <span class="n">collage_count</span><span class="p">))</span>
+
+    <span class="n">ideal_size</span> <span class="o">=</span> <span class="n">sort_tuples</span><span class="p">(</span><span class="n">sizes</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">collage_count</span> <span class="o">=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collage_count</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create collage </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">collage_count</span><span class="p">))</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+        <span class="n">count_scale_value</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">collage</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">[</span>
+            <span class="n">count_scale_value</span> <span class="p">:</span> <span class="n">count_scale_value</span> <span class="o">+</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">func</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">func</span><span class="p">(</span><span class="n">image_path</span><span class="p">):</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+                        <span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">blank_color</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">collage</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="o">-</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">x</span> <span class="o">+=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">y</span> <span class="o">+=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">collage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;collage_</span><span class="si">{}</span><span class="s2">.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> images unused&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">cloudburst</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social Media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../social_analytics.html">Social Analytics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, CONCURRENT STUDIO™.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

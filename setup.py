@@ -12,7 +12,6 @@ setup(
     url='https://github.com/concurrent-studio/cloudburst',
     author='CONCURRENT STUDIO™',
     author_email='info@concurrent.studio',
-    license="CC-BY-NC-SA-4.0",
     classifiers=[
         "License :: OSI Approved :: ISC License (ISCL)",
         "Programming Language :: Python",

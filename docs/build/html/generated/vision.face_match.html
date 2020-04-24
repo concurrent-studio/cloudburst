@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vision.face_match &#8212; cloudburst 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Social Analytics" href="../social_analytics.html" />
+    <link rel="prev" title="vision.crop_eyes" href="vision.crop_eyes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="vision-face-match">
+<h1>vision.face_match<a class="headerlink" href="#vision-face-match" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="vision.face_match">
+<code class="sig-prename descclassname">vision.</code><code class="sig-name descname">face_match</code><span class="sig-paren">(</span><em class="sig-param">known_image_path</em>, <em class="sig-param">unknown_image_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vision/face.html#face_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vision.face_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find matched faces in an image or list of images</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>known_image_path</strong> (<em>str</em>) – filepath to image of known identity</p></li>
+<li><p><strong>unknown_image_path</strong> (<em>str</em>) – path(s) to unknown images</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>results</strong> – list of match results (True/False)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Compare faces of all images in ‘./images’ folder to face of ‘./obama.jpg’</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cloudburst</span> <span class="k">as</span> <span class="nn">cb</span>
+<span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">vision</span> <span class="k">as</span> <span class="n">cbv</span>
+
+<span class="n">known</span> <span class="o">=</span> <span class="s1">&#39;./obama.jpg&#39;</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="s1">&#39;jpg&#39;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">cbv</span><span class="o">.</span><span class="n">face_match</span><span class="p">(</span><span class="n">known</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cloudburst</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social Media</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../vision.html">Vision</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#image">Image</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../vision.html#face">Face</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social_analytics.html">Social Analytics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../vision.html">Vision</a><ul>
+      <li>Previous: <a href="vision.crop_eyes.html" title="previous chapter">vision.crop_eyes</a></li>
+      <li>Next: <a href="../social_analytics.html" title="next chapter">Social Analytics</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, CONCURRENT STUDIO™.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/vision.face_match.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

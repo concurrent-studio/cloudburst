@@ -4,5 +4,6 @@
 
 import cloudburst as cb
 
+
 def test_query():
     assert cb.query(".", "jpg") == []

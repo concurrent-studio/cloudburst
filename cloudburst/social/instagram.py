@@ -4,25 +4,12 @@
 
 import json
 import requests
+import http.client
 from datetime import datetime
 from urllib.parse import urlencode, parse_qs
 from cloudburst import vision as cbv
 
-__all__ = [
-    'Instagram',
-    'download_instagram_by_shortcode'
-]
-
-
-def instagram_query(hash, variables):
-    query_url = "https://www.instagram.com/graphql/query/?{}".format(
-        urlencode({
-            'query_hash': hash,
-            'variables': json.dumps(variables, separators=(',', ':'))
-        })
-    )
-    page_data = json.loads(requests.get(query_url).text)
-    return page_data
+__all__ = ["Instagram", "download_instagram_by_shortcode"]
 
 
 def download_post(node, download_data=False):
@@ -43,12 +30,12 @@ def download_post(node, download_data=False):
         "location": node["location"],
         "timestamp": node["taken_at_timestamp"],
         "time_string": str(datetime.fromtimestamp(node["taken_at_timestamp"])),
-        "media": []
+        "media": [],
     }
 
     if node_typename == "GraphSidecar":
-        for idx, node_sidecar in enumerate(
-                node["edge_sidecar_to_children"]["edges"]):
+        for idx, node_sidecar in enumerate(node["edge_sidecar_to_children"]["edges"]):
+            node_sidecar = node_sidecar["node"]
             node_sidecar_typename = node_sidecar["__typename"]
 
             media_data = {
@@ -56,21 +43,18 @@ def download_post(node, download_data=False):
                 "id": node_sidecar["id"],
                 "typename": node_sidecar_typename,
                 "dimensions": node_sidecar["dimensions"],
-                "accessibility_caption": node_sidecar["accessibility_caption"],
-                "tagged_users": node_sidecar["edge_media_to_tagged_user"]["edges"]}
+                # "accessibility_caption": node_sidecar["accessibility_caption"],
+                "tagged_users": node_sidecar["edge_media_to_tagged_user"]["edges"],
+            }
 
             if node_sidecar_typename == "GraphImage":
                 node_url = node_sidecar["display_resources"][-1]["src"]
                 media_data["content_url"] = node_url
-                cbv.download_image(
-                    node_url, "{}_{}.jpg".format(
-                        node_shortcode, idx))
+                cbv.download_image(node_url, "{}_{}.jpg".format(node_shortcode, idx))
             elif node_typename == "GraphVideo":
                 node_url = node["video_url"]
                 media_data["content_url"] = node_url
-                cbv.download_image(
-                    node_url, "{}_{}.mp4".format(
-                        node_shortcode, idx))
+                cbv.download_image(node_url, "{}_{}.mp4".format(node_shortcode, idx))
 
             data_out["media"].append(media_data)
 
@@ -78,7 +62,7 @@ def download_post(node, download_data=False):
         media_data = {
             "content_url": "",
             "dimensions": node["dimensions"],
-            "tagged_users": node["edge_media_to_tagged_user"]["edges"]
+            "tagged_users": node["edge_media_to_tagged_user"]["edges"],
         }
 
         if node_typename == "GraphImage":
@@ -117,8 +101,7 @@ def download_instagram_by_shortcode(shortcode):
     """
     # Retrieve JSON data for post
     data_url = "https://www.instagram.com/p/{}/?__a=1".format(shortcode)
-    data = json.loads(requests.get(data_url).text)[
-        "graphql"]["shortcode_media"]
+    data = json.loads(requests.get(data_url).text)["graphql"]["shortcode_media"]
     download_post(data, True)
 
 
@@ -220,19 +203,48 @@ class Instagram:
         self.is_verified = page_data["is_verified"]
         self.profile_pic_url_hd = page_data["profile_pic_url_hd"]
         self.connected_fb_page = page_data["connected_fb_page"]
-        self.media_count = instagram_query(
-            "d496eb541e5c789274548bf473cc553e",
-            {
-                "id": self.id,
-                "first": 1,
-            }
+        self.media_count = self.__instagram_query(
+            "d496eb541e5c789274548bf473cc553e", {"id": self.id, "first": 1,}
         )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+
+    @staticmethod
+    def __instagram_query(hash, variables):
+        query_url = "https://www.instagram.com/graphql/query/?{}".format(
+            urlencode(
+                {
+                    "query_hash": hash,
+                    "variables": json.dumps(variables, separators=(",", ":")),
+                }
+            )
+        )
+        page_data = json.loads(requests.get(query_url).text)
+        return page_data
 
     def download_profile_picture(self):
         """Download an Instagram user's profile picure in its highest quality"""
         cbv.download_image(self.profile_pic_url_hd, "{}.jpg".format(self.id))
 
-    def download_posts(self, download_data):
+    def get_following(self):
+        """Get all users that someone is followign"""
+        following = []
+        end_cursor = ""
+        count = 0
+        while count < self.following_count:
+            response = self.__instagram_query(
+                "d04b0a864b4b54837c0d870b0e77e076",
+                {"id": self.id, "include_reel": True, "fetch_mutual": False, "first": 24, "after": end_cursor},
+            )
+            print(response)
+
+            # end_cursor = response["data"]["user"]["edge_follow"]["page_info"]["end_cursor"]
+            # edges = response["data"]["user"]["edge_follow"]["edges"]
+            # for node in edges:
+            #     following.append(node["username"])
+            #     print(node["username"])
+            #     count += 1
+            
+
+    def download_posts(self, download_data=False):
         """Download all posts from an Instagram user in their highest quality
 
         Parameters
@@ -242,18 +254,17 @@ class Instagram:
         """
         end_cursor = ""
         count = 0
-        while(count < self.media_count):
-            response = instagram_query(
+        while count < self.media_count:
+            response = self.__instagram_query(
                 "d496eb541e5c789274548bf473cc553e",
-                {
-                    "id": self.id,
-                    "first": 50,
-                    "after": end_cursor
-                }
+                {"id": self.id, "first": 50, "after": end_cursor},
             )
 
-            end_cursor = response["data"]["user"]["edge_owner_to_timeline_media"]["page_info"]["end_cursor"]
+            end_cursor = response["data"]["user"]["edge_owner_to_timeline_media"][
+                "page_info"
+            ]["end_cursor"]
             edges = response["data"]["user"]["edge_owner_to_timeline_media"]["edges"]
             for node in edges:
                 download_post(node["node"], download_data)
                 count += 1
+            print(count/self.media_count)

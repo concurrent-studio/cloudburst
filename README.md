@@ -1,6 +1,8 @@
 # cloudburst ⛈
 [![CircleCI](https://circleci.com/gh/concurrent-studio/cloudburst.svg?style=shield)](https://circleci.com/gh/concurrent-studio/cloudburst)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4bb39fbbdf594ef5915003e824c323ef)](https://www.codacy.com/gh/concurrent-studio/cloudburst?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=concurrent-studio/cloudburst&amp;utm_campaign=Badge_Grade)
+[![Documentation](https://img.shields.io/badge/docs-reference-brightgreen.svg)](https://concurrent-studio.github.io/cloudburst/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 A python package for computational design by [CONCURRENT STUDIO™](https://www.concurrent.studio)
@@ -18,6 +20,10 @@ git clone https://github.com/concurrent-studio/cloudburst.git
 cd cloudburst
 pip3 install -e .
 ```
+
+## ⚠️  IMPLEMENT THESE FEATURES
+- NLP, text cleaning and scraping [tds](https://towardsdatascience.com/nlp-for-beginners-cleaning-preprocessing-text-data-ae8e306bef0f)
+- Lyric scraping [genius](https://towardsdatascience.com/nlp-for-beginners-cleaning-preprocessing-text-data-ae8e306bef0f) 
 
 ## Documentation 
 A brief description of modules and submodules exists below.  
