@@ -20,7 +20,6 @@ import json
 import multiprocessing
 from glob import glob
 from pathlib import Path
-from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map, process_map
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
@@ -74,11 +73,11 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
 
     # MultiThreading
     if executor == "threadpool":
-        if not progress_bar:
+        if progress_bar == False:
             results = []
             with ThreadPoolExecutor(max_workers=max_workers_count) as executor:
                 futures = {executor.submit(func, i): i for i in input_list}
-                for future in tqdm(as_completed(futures), total=len(futures)):
+                for future in as_completed(futures):
                     val = futures[future]
                     try:
                         data = future.result()
@@ -91,7 +90,7 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
     
     # MultiProcessing
     elif executor == "processpool":
-        if not progress_bar:
+        if progress_bar == False:
             results = []
             with ProcessPoolExecutor(max_workers=max_workers_count) as executor:
                 futures = {executor.submit(func, i): i for i in input_list}
