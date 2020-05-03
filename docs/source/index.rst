@@ -20,6 +20,7 @@ API documentation
     :maxdepth: 2
 
     core
+    maths
     social
     vision
 

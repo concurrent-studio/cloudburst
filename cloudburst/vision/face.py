@@ -10,7 +10,7 @@ import face_recognition_models
 from PIL import Image
 from imutils import face_utils
 from cloudburst.core import concurrent, query
-from cloudburst.math import point_in_rect
+from cloudburst.maths import point_in_rect
 from cloudburst.vision import get_points_from_disk, write_points_to_disk
 
 __all__ = ["crop_faces", "crop_eyes", "face_match", "get_landmarks", "get_5_landmarks", "write_landmarks_database", "average_faces"]
@@ -231,12 +231,12 @@ def get_5_landmarks(image_path):
 
     .. code-block:: python
 
-       import cloudburst as cb
-       from cloudburst import vision as cbv
+        import cloudburst as cb
+        from cloudburst import vision as cbv
 
-       paths = cb.query('images', 'jpg')
-       for image_path in paths:
-        cbv.get_5_landmarks(image_path)
+        paths = cb.query('images', 'jpg')
+        for image_path in paths:
+            cbv.get_5_landmarks(image_path)
     """
      
     # Configure detector
@@ -274,12 +274,12 @@ def get_landmarks(image_path):
 
     .. code-block:: python
 
-       import cloudburst as cb
-       from cloudburst import vision as cbv
+        import cloudburst as cb
+        from cloudburst import vision as cbv
 
-       paths = cb.query('images', 'jpg')
-       for image_path in paths:
-        cbv.get_landmarks(image_path)
+        paths = cb.query('images', 'jpg')
+        for image_path in paths:
+            cbv.get_landmarks(image_path)
     """
     # Configure detector
     detector = dlib.get_frontal_face_detector()
@@ -316,12 +316,12 @@ def write_landmarks_database(folder, delete_errors=False):
     Get and crop the faces of all images in './images' folder
 
     .. code-block:: python
+    
+        import cloudburst as cb
+        from cloudburst import vision as cbv
 
-       import cloudburst as cb
-       from cloudburst import vision as cbv
-
-       paths = cb.query('images', 'jpg')
-       cbv.crop_faces(paths)
+        paths = cb.query('images', 'jpg')
+        cbv.crop_faces(paths)
     """
     def w2d(image_path):
         landmarks = get_landmarks(image_path)
@@ -348,12 +348,12 @@ def write_5_landmarks_database(folder, delete_errors=False):
     Get and crop the faces of all images in './images' folder
 
     .. code-block:: python
+    
+        import cloudburst as cb
+        from cloudburst import vision as cbv
 
-       import cloudburst as cb
-       from cloudburst import vision as cbv
-
-       paths = cb.query('images', 'jpg')
-       cbv.crop_faces(paths)
+        paths = cb.query('images', 'jpg')
+        cbv.crop_faces(paths)
     """
     def w2d(image_path):
         landmarks = get_5_landmarks(image_path)

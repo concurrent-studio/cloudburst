@@ -11,6 +11,12 @@ Instagram
 
     Instagram
     download_instagram_by_shortcode
+
+VSCO
+----
+.. autosummary::
+    :toctree: generated/
+    
     VSCO
 """
 

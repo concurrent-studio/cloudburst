@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Core Functions
-==============
+Core
+====
 A variety of general, reusable functions for cloudburst
 
 .. autosummary::
@@ -52,7 +52,9 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+
        import cloudburst as cb
 
         def is_even(number):
@@ -127,7 +129,9 @@ def query(folder, filetypes):
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+
         import cloudburst as cb
         matches = cb.query("images", "jpg")
         print(matches)
@@ -175,7 +179,9 @@ def write_list_to_file(filename, input_list):
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+
         import cloudburst as cb
 
         some_numbers = [i for i in range(50)]
@@ -198,7 +204,9 @@ def get_list_from_file(filename):
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+
         import cloudburst as cb
 
         some_numbers = [i for i in range(50)]
@@ -222,7 +230,9 @@ def write_dict_to_file(filename, input_dict):
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+
         import cloudburst as cb
 
         tesla_cars = {
@@ -273,7 +283,9 @@ def mkdir(dirname):
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
+    
     .. code-block:: python
+    
         import cloudburst as cb
 
         cb.mkdir("test_directory")
@@ -301,7 +313,9 @@ def sort_tuples(tuple_list, element_to_sort_by=1):
     Examples
     --------
     Sort a list of (key, value) by their values
+    
     .. code-block:: python
+    
         import cloudburst as cb
         tl = [("CONCURRENT", 5), ("STUDIO", 2), ("TEST", 8)]
         tl = cb.tuple_list(tl)

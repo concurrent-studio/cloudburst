@@ -45,11 +45,11 @@ class VSCO:
     Download all data of @joe
 
     .. code-block:: python
+    
+        from cloudburst import social as cbs
 
-       from cloudburst import social as cbs
-
-       joe = cbs.VSCO("joe") # instantiate new VSCO object
-       joe.download_all() # download all images and journal images
+        joe = cbs.VSCO("joe") # instantiate new VSCO object
+        joe.download_all() # download all images and journal images
     """
 
     def __init__(self, username):
@@ -58,7 +58,7 @@ class VSCO:
         Parameters
         ----------
         username : str
-            any Instagram user's username
+            any VSCO user's username
         """
 
         self.username = username

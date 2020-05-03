@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Math Functions
-==============
-A variety of math-related functions for cloudburst
+Math(s)
+=======
+A variety of geometry-related functions for cloudburst
 
 .. autosummary::
     :toctree: generated/
-
+    
     line_coeff_from_segment
     tri_centroid
     quad_centroid
@@ -37,8 +37,10 @@ def line_coeff_from_segment(point_a, point_b):
 
     Examples
     --------
-    Find the 
+    Find the slope and y-intercept of a line defined by points (8, 3) and (-1, 10)
+
     .. code-block:: python
+
         import cloudburst as cb
         (m, b) = cb.line_coeff_from_segment((8, 3), (-1, 10))
         print("line: y={}x+{}".format(m, b))
@@ -72,7 +74,9 @@ def tri_centroid(vertex_a, vertex_b, vertex_c):
     Examples
     --------
     Find the centroid of the traingle formed by points (2, 4), (6, 1), (8, 10)
+
     .. code-block:: python
+
         import cloudburst as cb
         centroid = cb.tri_centroid((2, 4), (6, 1), (8, 10))
         print(centroid)
@@ -109,7 +113,9 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     Examples
     --------
     Find the centroid of the quadrilateral formed by vertices (1, 0), (2, 8), (9, -1), (10, 2)
+
     .. code-block:: python    
+
         import cloudburst as cb
         centroid = cb.quad_centroid((1, 0), (2, 8), (9, -1), (10, 2))
         print(centroid)
@@ -172,8 +178,10 @@ def point_in_rect(rect, point):
 
     Examples
     --------
-    Find the 
+    Check whether or not a point exists within a rectangle 
+    
     .. code-block:: python
+    
         import cloudburst as cb
 
         rect = [(1, 4), (1, 8), (2, 8), (2, 4)]

@@ -95,9 +95,10 @@ def download_instagram_by_shortcode(shortcode, only_images=False):
     Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
 
     .. code-block:: python
-       from cloudburst import social as cbs
 
-       cbs.download_instagram_by_shortcode("B-X0DDrj30s")
+        from cloudburst import social as cbs
+
+        cbs.download_instagram_by_shortcode("B-X0DDrj30s")
     """
     # Full url with shortcode
     url = "https://www.instagram.com/p/{}/".format(shortcode)
@@ -166,13 +167,13 @@ class Instagram:
     Contruct new object for @pharrell, print bio, download profile image, download all media and data
 
     .. code-block:: python
+    
+        from cloudburst import social as cbs
 
-       from cloudburst import social as cbs
-
-       pharrell = cbs.Instagram("pharrell") # instantiate new Instagram object
-       print(pharrell.bio) # print bio
-       pharrell.download_profile_picture() # download HD profile image
-       pharrell.download_posts(True) # download all posts and media
+        pharrell = cbs.Instagram("pharrell") # instantiate new Instagram object
+        print(pharrell.bio) # print bio
+        pharrell.download_profile_picture() # download HD profile image
+        pharrell.download_posts(True) # download all posts and media
     """
 
     def __init__(self, username):

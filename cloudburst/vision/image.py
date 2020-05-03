@@ -26,10 +26,11 @@ def download(url, filename):
     Download an image from www.thebrilliance.com and save as 'brilliance.jpg'
 
     .. code-block:: python
-       from cloudburst import vision as cbv
 
-       url = 'https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316'
-       cbv.download(url, 'brilliance.jpg')
+        from cloudburst import vision as cbv
+
+        url = 'https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316'
+        cbv.download(url, 'brilliance.jpg')
     """
     with open(filename, "wb") as f:
         try:
@@ -56,6 +57,7 @@ def draw_points_on_image(image_path, point_list, radius=2, color=(255, 0, 0)):
     Calculate facial landmarks of an image and draw them on the imate
 
     .. code-block:: python
+
         from cloudburst import vision as cbv
 
         landmarks = cbv.get_landmarks("bella-hadid.jpg")
@@ -85,6 +87,7 @@ def write_points_to_disk(filename, input_list):
     Calculate facial landmarks on an image and write to disk
 
     .. code-block:: python
+
         from cloudburst import vision as cbv
 
         landmarks = cbv.get_landmarks("bella-hadid.jpg")
@@ -109,6 +112,7 @@ def get_points_from_disk(filename):
     Calculate facial landmarks on an image and write to disk, then load it back into another list
 
     .. code-block:: python
+    
         from cloudburst import vision as cbv
 
         landmarks = cbv.get_landmarks("bella-hadid.jpg")
@@ -146,11 +150,11 @@ def create_collage(
 
     .. code-block:: python
 
-       import cloudburst as cb
-       from cloudburst import vision as cbv
+        import cloudburst as cb
+        from cloudburst import vision as cbv
 
-       image_paths = cb.query('images', 'jpg')
-       cbv.create_collage(1920, 1080, 10, image_paths)
+        image_paths = cb.query('images', 'jpg')
+        cbv.create_collage(1920, 1080, 10, image_paths)
     """
     image_count = len(image_list)
 
