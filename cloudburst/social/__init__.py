@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Social Media
-============
+Social
+======
 Scrape and analyze data from various social media platforms
 
 Instagram
@@ -12,6 +11,8 @@ Instagram
 
     Instagram
     download_instagram_by_shortcode
+    VSCO
 """
 
-from .instagram import Instagram, download_instagram_by_shortcode
+from .instagram import *
+from .vsco import *

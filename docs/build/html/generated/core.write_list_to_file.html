@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>core.write_list_to_file &#8212; cloudburst 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="core.get_list_from_file" href="core.get_list_from_file.html" />
+    <link rel="prev" title="core.query" href="core.query.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="core-write-list-to-file">
+<h1>core.write_list_to_file<a class="headerlink" href="#core-write-list-to-file" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="core.write_list_to_file">
+<code class="sig-prename descclassname">core.</code><code class="sig-name descname">write_list_to_file</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">input_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/core.html#write_list_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#core.write_list_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a list to a text file with each element on a new line</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – the filename that the list will be saved to</p></li>
+<li><p><strong>input_list</strong> (<em>list</em>) – list to save</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Find all images ending in “.jpg” in “./images” folder
+.. code-block:: python</p>
+<blockquote>
+<div><p>import cloudburst as cb</p>
+<p>some_numbers = [i for i in range(50)]
+cb.write_list_to_file(“numbers.txt”, some_numbers)</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cloudburst</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../core.html">Core Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.concurrent.html">core.concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.mkdir.html">core.mkdir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.query.html">core.query</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">core.write_list_to_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.get_list_from_file.html">core.get_list_from_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.write_dict_to_file.html">core.write_dict_to_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.sort_tuples.html">core.sort_tuples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social_analytics.html">Social Analytics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../core.html">Core Functions</a><ul>
+      <li>Previous: <a href="core.query.html" title="previous chapter">core.query</a></li>
+      <li>Next: <a href="core.get_list_from_file.html" title="next chapter">core.get_list_from_file</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, CONCURRENT STUDIO™.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/core.write_list_to_file.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

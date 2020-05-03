@@ -14,8 +14,8 @@
     <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="core.sort_tuples" href="core.sort_tuples.html" />
-    <link rel="prev" title="Core Functions" href="../core.html" />
+    <link rel="next" title="core.write_list_to_file" href="core.write_list_to_file.html" />
+    <link rel="prev" title="core.mkdir" href="core.mkdir.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -36,13 +36,13 @@
 <h1>core.query<a class="headerlink" href="#core-query" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="core.query">
-<code class="sig-prename descclassname">core.</code><code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param">folder</em>, <em class="sig-param">ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/core.html#query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#core.query" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">core.</code><code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param">folder</em>, <em class="sig-param">filetypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/core.html#query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#core.query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query folder by filetype</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>folder</strong> (<em>str</em>) – the folder to search within</p></li>
-<li><p><strong>ext</strong> (<em>str</em>) – extension to locate files by</p></li>
+<li><p><strong>filetypes</strong> (<em>str</em>) – extension to locate files by (“images”, “videos”, “audio”, or custom entries)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -54,9 +54,12 @@
 </dl>
 <p class="rubric">Examples</p>
 <p>Find all images ending in “.jpg” in “./images” folder
-&gt;&gt;&gt; import cloudburst as cb
-&gt;&gt;&gt; matches = cb.query(“images”, “jpg”)
-&gt;&gt;&gt; print(matches)</p>
+.. code-block:: python</p>
+<blockquote>
+<div><p>import cloudburst as cb
+matches = cb.query(“images”, “jpg”)
+print(matches)</p>
+</div></blockquote>
 </dd></dl>
 
 </div>
@@ -83,11 +86,16 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../core.html">Core Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.concurrent.html">core.concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.mkdir.html">core.mkdir</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">core.query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.write_list_to_file.html">core.write_list_to_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.get_list_from_file.html">core.get_list_from_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.write_dict_to_file.html">core.write_dict_to_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.sort_tuples.html">core.sort_tuples</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../social.html">Social Media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vision.html">Vision</a></li>
 </ul>
 <ul>
@@ -103,8 +111,8 @@
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../core.html">Core Functions</a><ul>
-      <li>Previous: <a href="../core.html" title="previous chapter">Core Functions</a></li>
-      <li>Next: <a href="core.sort_tuples.html" title="next chapter">core.sort_tuples</a></li>
+      <li>Previous: <a href="core.mkdir.html" title="previous chapter">core.mkdir</a></li>
+      <li>Next: <a href="core.write_list_to_file.html" title="next chapter">core.write_list_to_file</a></li>
   </ul></li>
   </ul></li>
 </ul>

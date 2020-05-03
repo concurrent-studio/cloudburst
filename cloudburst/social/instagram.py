@@ -1,88 +1,89 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ Scrape Instagram through its private API """
-
+import math
 import json
+import os
 import requests
 import http.client
 from datetime import datetime
+from pathlib import Path
+from PIL import Image
+from tqdm import tqdm
 from urllib.parse import urlencode, parse_qs
-from cloudburst import vision as cbv
+from cloudburst.core import concurrent, write_list_to_file, get_list_from_file, mkdir
+from cloudburst.vision.colors import get_colors
+from cloudburst.vision.image import download
+from cloudburst.vision.face import crop_faces
 
 __all__ = ["Instagram", "download_instagram_by_shortcode"]
 
 
-def download_post(node, download_data=False):
-    node_shortcode = node["shortcode"]
-    node_typename = node["__typename"]
+def _download_post(node, only_images=False):
+    """Download an instagram post (private method)
 
-    # "caption_is_edited": node["caption_is_edited"],
-    # "has_ranked_comments": node["has_ranked_comments"],
-    # "is_ad": node["is_ad"],
-    data_out = {
-        "shortcode": node["shortcode"],
-        "typename": node_typename,
-        "display_url": node["display_url"],
-        "id": node["id"],
-        "caption": node["edge_media_to_caption"]["edges"],
-        "comments_disabled": node["comments_disabled"],
-        "likes": node["edge_media_preview_like"]["count"],
-        "location": node["location"],
-        "timestamp": node["taken_at_timestamp"],
-        "time_string": str(datetime.fromtimestamp(node["taken_at_timestamp"])),
-        "media": [],
-    }
+    Parameters
+    ----------
+    node : dictionary
+        json data from instagram's public api
 
-    if node_typename == "GraphSidecar":
-        for idx, node_sidecar in enumerate(node["edge_sidecar_to_children"]["edges"]):
-            node_sidecar = node_sidecar["node"]
-            node_sidecar_typename = node_sidecar["__typename"]
+    Return
+    ------
+    saved : list
+        list of saved posts in the form (shortcode, id)
 
-            media_data = {
-                "content_url": "",
-                "id": node_sidecar["id"],
-                "typename": node_sidecar_typename,
-                "dimensions": node_sidecar["dimensions"],
-                # "accessibility_caption": node_sidecar["accessibility_caption"],
-                "tagged_users": node_sidecar["edge_media_to_tagged_user"]["edges"],
-            }
+    Notes
+    -----
+    Posts saved in the format [shortcode]_[id].[extension] such that their source can be easily retrieved and sidecar posts don't overwrite themselves
+    """
+    # Post type
+    typename = node["__typename"]
+    # Post shortcode
+    shortcode = node["shortcode"]
+    # Post id
+    post_id = node["id"]
+    # List of saved posts
+    saved = []
 
-            if node_sidecar_typename == "GraphImage":
-                node_url = node_sidecar["display_resources"][-1]["src"]
-                media_data["content_url"] = node_url
-                cbv.download_image(node_url, "{}_{}.jpg".format(node_shortcode, idx))
-            elif node_typename == "GraphVideo":
-                node_url = node["video_url"]
-                media_data["content_url"] = node_url
-                cbv.download_image(node_url, "{}_{}.mp4".format(node_shortcode, idx))
+    # Handle sidecar (multi-content posts)
+    if typename == "GraphSidecar":
+        # Download each element in sidecar
+        for node_sidecar in node["edge_sidecar_to_children"]["edges"]:
+            sidecar = node_sidecar["node"]
+            sidecar_typename = sidecar["__typename"]
+            sidecar_id = sidecar["id"]
+            
+            # Append id to list of downloaded ids
+            saved.append((shortcode, sidecar_id))
 
-            data_out["media"].append(media_data)
+            # Download sidecar image
+            if sidecar_typename == "GraphImage":
+                download(sidecar["display_resources"][-1]["src"], "{}_{}.jpg".format(shortcode, sidecar_id))
+            
+            # Download sidecar video
+            elif sidecar_typename == "GraphVideo":
+                if only_images:
+                    download(sidecar["display_url"], "{}_{}.jpg".format(shortcode, sidecar_id))
+                else:
+                    download(sidecar["video_url"], "{}_{}.mp4".format(shortcode, sidecar_id))
 
-    else:
-        media_data = {
-            "content_url": "",
-            "dimensions": node["dimensions"],
-            "tagged_users": node["edge_media_to_tagged_user"]["edges"],
-        }
+    # Handle image
+    elif typename == "GraphImage":
+        saved.append((shortcode, post_id))
+        download(node["display_resources"][-1]["src"], "{}_{}.jpg".format(shortcode, post_id))
 
-        if node_typename == "GraphImage":
-            node_url = node["display_resources"][-1]["src"]
-            media_data["content_url"] = node_url
-            cbv.download_image(node_url, "{}.jpg".format(node_shortcode))
-        elif node_typename == "GraphVideo":
-            node_url = node["video_url"]
-            media_data["content_url"] = node_url
-            cbv.download_image(node_url, "{}.mp4".format(node_shortcode))
+    # Handle video
+    elif typename == "GraphVideo":
+        saved.append((shortcode, post_id))
+        if only_images:
+            download(node["display_url"], "{}_{}.jpg".format(shortcode, post_id))
+        else:
+            download(node["video_url"], "{}_{}.mp4".format(shortcode, post_id))
 
-        data_out["media"].append(media_data)
+    # return list of tuples in form (shortcode, id)
+    return saved
 
-    if download_data:
-        with open("{}.json".format(node_shortcode), "w") as f:
-            f.write(json.dumps(data_out, indent=4))
-
-
-def download_instagram_by_shortcode(shortcode):
-    """Download media and data from a posed given its shortcode
+def download_instagram_by_shortcode(shortcode, only_images=False):
+    """Download an instagram post from its shortcode
 
     Parameters
     ----------
@@ -94,16 +95,21 @@ def download_instagram_by_shortcode(shortcode):
     Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
 
     .. code-block:: python
-
        from cloudburst import social as cbs
 
        cbs.download_instagram_by_shortcode("B-X0DDrj30s")
     """
-    # Retrieve JSON data for post
-    data_url = "https://www.instagram.com/p/{}/?__a=1".format(shortcode)
-    data = json.loads(requests.get(data_url).text)["graphql"]["shortcode_media"]
-    download_post(data, True)
+    # Full url with shortcode
+    url = "https://www.instagram.com/p/{}/".format(shortcode)
+    try:
+        # Get data
+        data = json.loads(requests.get("{}?__a=1".format(url)).text)["graphql"]["shortcode_media"]
+        return _download_post(data, only_images=only_images)
 
+    except:
+        # Print error if one occured along the way
+        print("Error: could not download post {}".format(url))
+        return None
 
 class Instagram:
     """Scrape the data of an Instagram User
@@ -179,36 +185,35 @@ class Instagram:
         """
         # Retrieve JSON profile for user
         data_url = "https://www.instagram.com/{}/?__a=1".format(username)
-        page_data = json.loads(requests.get(data_url).text)["graphql"]["user"]
+        data = json.loads(requests.get(data_url).text)["graphql"]["user"]
 
         # Profile data gathered upon instantiation
         self.username = username
-        self.id = page_data["id"]
-        self.full_name = page_data["full_name"]
-        self.biography = page_data["biography"]
-        self.external_url = page_data["external_url"]
-        self.follower_count = page_data["edge_followed_by"]["count"]
-        self.following_count = page_data["edge_follow"]["count"]
-        self.has_ar_effects = page_data["has_ar_effects"]
-        self.has_channel = page_data["has_channel"]
-        self.has_blocked_viewer = page_data["has_blocked_viewer"]
-        self.highlight_reel_count = page_data["highlight_reel_count"]
-        self.has_requested_viewer = page_data["has_requested_viewer"]
-        self.is_business_account = page_data["is_business_account"]
-        self.business_category_name = page_data["business_category_name"]
-        self.category_id = page_data["category_id"]
-        self.overall_category_name = page_data["overall_category_name"]
-        self.is_joined_recently = page_data["is_joined_recently"]
-        self.is_private = page_data["is_private"]
-        self.is_verified = page_data["is_verified"]
-        self.profile_pic_url_hd = page_data["profile_pic_url_hd"]
-        self.connected_fb_page = page_data["connected_fb_page"]
-        self.media_count = self.__instagram_query(
-            "d496eb541e5c789274548bf473cc553e", {"id": self.id, "first": 1,}
-        )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+        self.id = data["id"]
+        self.full_name = data["full_name"]
+        self.biography = data["biography"]
+        self.external_url = data["external_url"]
+        self.follower_count = data["edge_followed_by"]["count"]
+        self.following_count = data["edge_follow"]["count"]
+        self.has_ar_effects = data["has_ar_effects"]
+        self.has_channel = data["has_channel"]
+        self.has_blocked_viewer = data["has_blocked_viewer"]
+        self.highlight_reel_count = data["highlight_reel_count"]
+        self.has_requested_viewer = data["has_requested_viewer"]
+        self.is_business_account = data["is_business_account"]
+        self.business_category_name = data["business_category_name"]
+        self.category_id = data["category_id"]
+        self.overall_category_name = data["overall_category_name"]
+        self.is_joined_recently = data["is_joined_recently"]
+        self.is_private = data["is_private"]
+        self.is_verified = data["is_verified"]
+        self.profile_pic_url_hd = data["profile_pic_url_hd"]
+        self.connected_fb_page = data["connected_fb_page"]
+        self.media_count = self.__instagram_query("d496eb541e5c789274548bf473cc553e", {"id": self.id, "first": 1,})["data"]["user"]["edge_owner_to_timeline_media"]["count"]
 
     @staticmethod
     def __instagram_query(hash, variables):
+        """Run a graphql instagram through instagram's public graphql access point"""
         query_url = "https://www.instagram.com/graphql/query/?{}".format(
             urlencode(
                 {
@@ -217,41 +222,30 @@ class Instagram:
                 }
             )
         )
-        page_data = json.loads(requests.get(query_url).text)
-        return page_data
+        try:
+            # If successful, load data
+            data = json.loads(requests.get(query_url).text)
+        except:
+            # If unsuccessful, return None
+            data = None
+        return data
 
     def download_profile_picture(self):
         """Download an Instagram user's profile picure in its highest quality"""
-        cbv.download_image(self.profile_pic_url_hd, "{}.jpg".format(self.id))
-
-    def get_following(self):
-        """Get all users that someone is followign"""
-        following = []
-        end_cursor = ""
-        count = 0
-        while count < self.following_count:
-            response = self.__instagram_query(
-                "d04b0a864b4b54837c0d870b0e77e076",
-                {"id": self.id, "include_reel": True, "fetch_mutual": False, "first": 24, "after": end_cursor},
-            )
-            print(response)
-
-            # end_cursor = response["data"]["user"]["edge_follow"]["page_info"]["end_cursor"]
-            # edges = response["data"]["user"]["edge_follow"]["edges"]
-            # for node in edges:
-            #     following.append(node["username"])
-            #     print(node["username"])
-            #     count += 1
+        download(self.profile_pic_url_hd, "{}_{}.jpg".format(self.username, self.id))
             
-
-    def download_posts(self, download_data=False):
+    def get_post_shortcodes(self, display_progress=True):
         """Download all posts from an Instagram user in their highest quality
-
+        
         Parameters
         ----------
-        download_data : bool
-            download post data as well as media
+        display_progress : bool
+            Display progress of shortcode retrieval
         """
+        # List of shortcodes
+        shortcode_list = []
+
+        # Make graphql queries until all shortcodes are gathered
         end_cursor = ""
         count = 0
         while count < self.media_count:
@@ -259,12 +253,113 @@ class Instagram:
                 "d496eb541e5c789274548bf473cc553e",
                 {"id": self.id, "first": 50, "after": end_cursor},
             )
+            if response:
+                end_cursor = response["data"]["user"]["edge_owner_to_timeline_media"][
+                    "page_info"
+                ]["end_cursor"]
+                edges = response["data"]["user"]["edge_owner_to_timeline_media"]["edges"]
+                
+                for node in edges:
+                    shortcode_list.append(node["node"]["shortcode"])
+                    if display_progress:
+                        print(" Retreived {}% of @{}'s posts".format(round(100*count/self.media_count, 2), self.username), end="\r", flush=True)
+                    count += 1
 
-            end_cursor = response["data"]["user"]["edge_owner_to_timeline_media"][
-                "page_info"
-            ]["end_cursor"]
-            edges = response["data"]["user"]["edge_owner_to_timeline_media"]["edges"]
-            for node in edges:
-                download_post(node["node"], download_data)
-                count += 1
-            print(count/self.media_count)
+        return shortcode_list
+
+    def download_posts(self, display_progress=True):
+        """Download all posts from an Instagram user in their highest quality
+
+        Parameters
+        ----------
+        display_progress : bool
+            Display progress of post download
+        """
+        # Check whether shortcodes have already been saved
+        shortcode_filename = "{}_shortcode_list.txt".format(self.username)
+        if Path(shortcode_filename).is_file():
+            shortcode_list = get_list_from_file(shortcode_filename)
+        else:
+            # Retrieve shortcodes
+            shortcode_list = self.get_post_shortcodes(display_progress)
+            write_list_to_file(shortcode_filename, shortcode_list)
+        
+        concurrent(download_instagram_by_shortcode, shortcode_list, progress_bar=display_progress)
+    
+    def download_faces(self, display_progress=True):
+        """Download all faces from an Instagram user in their highest quality
+
+        Parameters
+        ----------
+        display_progress : bool
+            Display progress of post download
+        """
+        # Function to crop and download faces in a post, then delete the original image
+        def _get_faces_by_shortcode(shortcode):
+            for media_shortcode, media_id in download_instagram_by_shortcode(shortcode, only_images=True):
+                try:
+                    filename = "{}_{}.jpg".format(media_shortcode, media_id)
+                    crop_faces(filename)
+                    os.remove(filename)
+                except:
+                    pass
+        
+        # Check whether shortcodes have already been saved
+        shortcode_filename = "{}_shortcode_list.txt".format(self.username)
+        if Path(shortcode_filename).is_file():
+            shortcode_list = get_list_from_file(shortcode_filename)
+        else:
+            # Retrieve shortcodes
+            shortcode_list = self.get_post_shortcodes(display_progress)
+            write_list_to_file(shortcode_filename, shortcode_list)
+        
+        concurrent(_get_faces_by_shortcode, shortcode_list, progress_bar=display_progress)
+
+    def download_faces_and_colors(self, color_count=1, display_progress=True):
+        """Download all faces and predominant color of each post from an Instagram user in their highest quality
+
+        Parameters
+        ----------
+        color_count : int
+            Number of colors to grab from each image
+        display_progress : bool
+            Display progress of post download
+        """
+        # List of predominant colors in posts
+        colors = []
+    
+        # Function to crop and download faces in a post, then delete the original image
+        def _get_faces_and_colors_by_shortcode(shortcode):
+            for media_shortcode, media_id in download_instagram_by_shortcode(shortcode, only_images=True):
+                try:
+                    filename = "{}_{}.jpg".format(media_shortcode, media_id)
+                    colors.append(get_colors(filename, color_count=color_count))
+                    crop_faces(filename)
+                    os.remove(filename)
+                except:
+                    pass
+        
+        # Check whether shortcodes have already been saved
+        shortcode_filename = "{}_shortcode_list.txt".format(self.username)
+        if Path(shortcode_filename).is_file():
+            shortcode_list = get_list_from_file(shortcode_filename)
+        else:
+            # Retrieve shortcodes
+            shortcode_list = self.get_post_shortcodes(display_progress)
+            write_list_to_file(shortcode_filename, shortcode_list)
+        
+        # Crop Faces
+        face_dir = mkdir("faces")
+        os.chdir(face_dir)
+        concurrent(_get_faces_and_colors_by_shortcode, shortcode_list, progress_bar=display_progress)
+        os.chdir(face_dir.parent)
+        # Write color list to file
+        write_list_to_file("{}_colors.txt".format(self.username), colors)
+        # Write color list to image
+        s = math.floor(math.sqrt(2*len(colors)))
+        if s%2 != 0:
+            s = s-1
+        pixel_count = int((s**2/2))
+        img = Image.new("RGB", (int(s/2), s))
+        img.putdata(colors[0:pixel_count-1])
+        img.save("{}_colors.jpg".format(self.username))

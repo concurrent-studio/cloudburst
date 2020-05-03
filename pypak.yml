@@ -1,0 +1,13 @@
+name: cloudburst
+author: concurrent-studio
+author email: info@concurrent.studio
+version: 0.1.1
+license: MIT
+description: "A python package for computational design by CONCURRENT STUDIO\u2122"
+git username: concurrent-studio
+git url: https://github.com/concurrent-studio/cloudburst
+classifiers:
+  dev status: null
+  intended audience: science/research
+cli: false
+autoformatting: true

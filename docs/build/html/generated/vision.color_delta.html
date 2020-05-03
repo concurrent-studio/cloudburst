@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vision.color_delta &#8212; cloudburst 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vision.get_colors" href="vision.get_colors.html" />
+    <link rel="prev" title="Vision" href="../vision.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="vision-color-delta">
+<h1>vision.color_delta<a class="headerlink" href="#vision-color-delta" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="vision.color_delta">
+<code class="sig-prename descclassname">vision.</code><code class="sig-name descname">color_delta</code><span class="sig-paren">(</span><em class="sig-param">color1</em>, <em class="sig-param">color2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vision/colors.html#color_delta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vision.color_delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Percentage difference between two colors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color1</strong> (<em>tuple</em>) – color in the format of (r, g, b)</p></li>
+<li><p><strong>color2</strong> (<em>str</em>) – color in the format of (r, g, b)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>difference</strong> – the percent difference between the two colors
+None if input value out of range</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Find the difference between (223, 42, 5) and (47, 156, 89)
+.. code-block:: python</p>
+<blockquote>
+<div><p>from cloudburst import vision as cbv
+difference = cbv.color_delta((223, 42, 5), (47, 156, 89))
+print(difference)</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cloudburst</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../vision.html">Vision</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../vision.html#color">Color</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#image">Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#face">Face</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social_analytics.html">Social Analytics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../vision.html">Vision</a><ul>
+      <li>Previous: <a href="../vision.html" title="previous chapter">Vision</a></li>
+      <li>Next: <a href="vision.get_colors.html" title="next chapter">vision.get_colors</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, CONCURRENT STUDIO™.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/vision.color_delta.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

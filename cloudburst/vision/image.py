@@ -1,17 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ image generation module for cloudburst """
 
+import cv2
 import requests
+from pathlib import Path
 from PIL import Image
 from datetime import datetime
-from cloudburst import sort_tuples
+from cloudburst.core import sort_tuples, get_list_from_file, write_list_to_file
 
-__all__ = ["download_image", "create_collage"]
+__all__ = ["download", "draw_points_on_image", "write_points_to_disk", "get_points_from_disk", "create_collage"]
 
 
-def download_image(url, filename):
-    """Download an image from a URL
+def download(url, filename):
+    """Download an image or video from a URL
 
     Parameters
     ----------
@@ -25,16 +26,99 @@ def download_image(url, filename):
     Download an image from www.thebrilliance.com and save as 'brilliance.jpg'
 
     .. code-block:: python
-
        from cloudburst import vision as cbv
 
        url = 'https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316'
-
-       cbv.download_image(url, 'brilliance.jpg')
+       cbv.download(url, 'brilliance.jpg')
     """
     with open(filename, "wb") as f:
-        f.write(requests.get(url).content)
+        try:
+            f.write(requests.get(url).content)
+        except:
+            pass
 
+def draw_points_on_image(image_path, point_list, radius=2, color=(255, 0, 0)):
+    """Draw points on an image
+
+    Parameters
+    ----------
+    image_path : str
+        path to image
+    point_list : list
+        list of points in form (x, y) to draw on image
+    radius : int
+        radius of points to draw in pixels
+    color : tuple
+        color of points to draw
+
+    Examples
+    --------
+    Calculate facial landmarks of an image and draw them on the imate
+
+    .. code-block:: python
+        from cloudburst import vision as cbv
+
+        landmarks = cbv.get_landmarks("bella-hadid.jpg")
+        cbv.draw_points_on_image("bella-hadid.jpg", landmarks)
+    """
+    img = cv2.imread(image_path, 1)
+
+    for x, y in point_list:
+        cv2.circle(img, (int(x), int(y)), radius, color, -1)
+
+    cv2.imshow(Path(image_path).name, img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def write_points_to_disk(filename, input_list):
+    """Write a list of points in form (x, y) to disk
+
+    Parameters
+    ----------
+    filename : str
+        filename to save list to
+    input_list : list
+        list of points to save
+
+    Examples
+    --------
+    Calculate facial landmarks on an image and write to disk
+
+    .. code-block:: python
+        from cloudburst import vision as cbv
+
+        landmarks = cbv.get_landmarks("bella-hadid.jpg")
+        cbv.write_points_to_disk("bella-hadid.txt", landmarks)
+    """
+    print([i for i in input_list])
+    point_list = ["{}\t{}".format(x, y) for x, y in input_list]
+    write_list_to_file(filename, point_list)
+
+def get_points_from_disk(filename):
+    """Get a list of points in form (x, y) from saved  file
+
+    Parameters
+    ----------
+    filename : str
+        filename to save list to
+    input_list : list
+        list of points to save
+
+    Examples
+    --------
+    Calculate facial landmarks on an image and write to disk, then load it back into another list
+
+    .. code-block:: python
+        from cloudburst import vision as cbv
+
+        landmarks = cbv.get_landmarks("bella-hadid.jpg")
+        cbv.write_points_to_disk("bella-hadid.txt", landmarks)
+        landmarks_from_disk = cbv.get_points_from_disk("bella-hadid.txt)
+        print(landmarks_from_disk)
+    """
+    input_list = get_list_from_file(filename)
+    split_list = [i.split("\t") for i in input_list]
+    return [(int(float(x)), int(float(y))) for x, y in split_list]
 
 def create_collage(
     width, height, min_size, image_list, func=None, blank_color=(255, 255, 255)

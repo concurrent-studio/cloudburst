@@ -31,20 +31,21 @@
           <div class="body" role="main">
             
   <h1>Source code for vision.image</h1><div class="highlight"><pre>
-<span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot; image generation module for cloudburst &quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">sort_tuples</span>
+<span class="kn">from</span> <span class="nn">cloudburst.core</span> <span class="kn">import</span> <span class="n">sort_tuples</span><span class="p">,</span> <span class="n">get_list_from_file</span><span class="p">,</span> <span class="n">write_list_to_file</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;download_image&quot;</span><span class="p">,</span> <span class="s2">&quot;create_collage&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;download&quot;</span><span class="p">,</span> <span class="s2">&quot;draw_points_on_image&quot;</span><span class="p">,</span> <span class="s2">&quot;write_points_to_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;get_points_from_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;create_collage&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="download_image"><a class="viewcode-back" href="../../generated/vision.download_image.html#vision.download_image">[docs]</a><span class="k">def</span> <span class="nf">download_image</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Download an image from a URL</span>
+<div class="viewcode-block" id="download"><a class="viewcode-back" href="../../generated/vision.download.html#vision.download">[docs]</a><span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download an image or video from a URL</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -58,16 +59,98 @@
 <span class="sd">    Download an image from www.thebrilliance.com and save as &#39;brilliance.jpg&#39;</span>
 
 <span class="sd">    .. code-block:: python</span>
-
 <span class="sd">       from cloudburst import vision as cbv</span>
 
 <span class="sd">       url = &#39;https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316&#39;</span>
-
-<span class="sd">       cbv.download_image(url, &#39;brilliance.jpg&#39;)</span>
+<span class="sd">       cbv.download(url, &#39;brilliance.jpg&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span></div>
 
+<div class="viewcode-block" id="draw_points_on_image"><a class="viewcode-back" href="../../generated/vision.draw_points_on_image.html#vision.draw_points_on_image">[docs]</a><span class="k">def</span> <span class="nf">draw_points_on_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">point_list</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Draw points on an image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        path to image</span>
+<span class="sd">    point_list : list</span>
+<span class="sd">        list of points in form (x, y) to draw on image</span>
+<span class="sd">    radius : int</span>
+<span class="sd">        radius of points to draw in pixels</span>
+<span class="sd">    color : tuple</span>
+<span class="sd">        color of points to draw</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks of an image and draw them on the imate</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        from cloudburst import vision as cbv</span>
+
+<span class="sd">        landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">        cbv.draw_points_on_image(&quot;bella-hadid.jpg&quot;, landmarks)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">circle</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="n">radius</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">destroyAllWindows</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="write_points_to_disk"><a class="viewcode-back" href="../../generated/vision.write_points_to_disk.html#vision.write_points_to_disk">[docs]</a><span class="k">def</span> <span class="nf">write_points_to_disk</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write a list of points in form (x, y) to disk</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save list to</span>
+<span class="sd">    input_list : list</span>
+<span class="sd">        list of points to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks on an image and write to disk</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        from cloudburst import vision as cbv</span>
+
+<span class="sd">        landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">        cbv.write_points_to_disk(&quot;bella-hadid.txt&quot;, landmarks)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">point_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+    <span class="n">write_list_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">point_list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_points_from_disk"><a class="viewcode-back" href="../../generated/vision.get_points_from_disk.html#vision.get_points_from_disk">[docs]</a><span class="k">def</span> <span class="nf">get_points_from_disk</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a list of points in form (x, y) from saved  file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save list to</span>
+<span class="sd">    input_list : list</span>
+<span class="sd">        list of points to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks on an image and write to disk, then load it back into another list</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        from cloudburst import vision as cbv</span>
+
+<span class="sd">        landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">        cbv.write_points_to_disk(&quot;bella-hadid.txt&quot;, landmarks)</span>
+<span class="sd">        landmarks_from_disk = cbv.get_points_from_disk(&quot;bella-hadid.txt)</span>
+<span class="sd">        print(landmarks_from_disk)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">input_list</span> <span class="o">=</span> <span class="n">get_list_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">split_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">split_list</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="create_collage"><a class="viewcode-back" href="../../generated/vision.create_collage.html#vision.create_collage">[docs]</a><span class="k">def</span> <span class="nf">create_collage</span><span class="p">(</span>
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">image_list</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blank_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
@@ -179,7 +262,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social Media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
 </ul>
 <ul>
