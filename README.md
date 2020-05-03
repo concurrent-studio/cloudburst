@@ -1,6 +1,5 @@
 # cloudburst ⛈
-[![CircleCI](https://circleci.com/gh/concurrent-studio/cloudburst.svg?style=shield)](https://circleci.com/gh/concurrent-studio/cloudburst) [![Documentation](https://img.shields.io/badge/docs-reference-brightgreen.svg)](https://concurrent-studio.github.io/cloudburst/) [![License: MIT](https://img.shields.io/badge/packager-pypak-dbd3cd.svg)](https://github.com/concurrent-studio/pypak) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
-
+[![CircleCI](https://circleci.com/gh/concurrent-studio/cloudburst.svg?style=shield)](https://circleci.com/gh/concurrent-studio/cloudburst) [![Documentation](https://img.shields.io/badge/docs-reference-brightgreen.svg)](https://concurrent-studio.github.io/cloudburst/) [![License: MIT](https://img.shields.io/badge/packager-pypak-dbd3cd.svg)](https://github.com/concurrent-studio/pypak) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![PyPI](https://img.shields.io/pypi/v/cloudburst)
 
 A python package for computational design by [CONCURRENT STUDIO™](https://www.concurrent.studio)
 
