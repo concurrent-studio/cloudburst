@@ -16,4 +16,3 @@ def is_even(number):
 def test_concurrent():
     numbers = [0, 5, 12, 57, 8654]      
     assert sum(cb.concurrent(is_even, numbers)) == 3
-    print(result)
