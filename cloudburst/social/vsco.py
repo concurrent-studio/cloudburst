@@ -5,8 +5,8 @@ import os
 import requests
 from pathlib import Path
 from time import time
+from ando import download
 from cloudburst.core import concurrent, mkdir, write_dict_to_file
-from cloudburst.vision.image import download
 
 __all__ = ["VSCO"]
 

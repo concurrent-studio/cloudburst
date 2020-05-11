@@ -10,10 +10,8 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 from urllib.parse import urlencode, parse_qs
+from ando import get_colors, download
 from cloudburst.core import concurrent, write_list_to_file, get_list_from_file, mkdir
-from cloudburst.vision.colors import get_colors
-from cloudburst.vision.image import download
-from cloudburst.vision.face import crop_faces
 
 __all__ = ["Instagram", "download_instagram_by_shortcode"]
 
@@ -279,6 +277,7 @@ class Instagram:
         # Check whether shortcodes have already been saved
         shortcode_filename = "{}_shortcode_list.txt".format(self.username)
         if Path(shortcode_filename).is_file():
+            print("Shortcode list found @: {}".format(shortcode_filename))
             shortcode_list = get_list_from_file(shortcode_filename)
         else:
             # Retrieve shortcodes
@@ -286,59 +285,6 @@ class Instagram:
             write_list_to_file(shortcode_filename, shortcode_list)
         
         concurrent(download_instagram_by_shortcode, shortcode_list, progress_bar=display_progress)
-    
-    def download_faces(self, display_progress=True):
-        """Download all faces from an Instagram user in their highest quality
-
-        Parameters
-        ----------
-        display_progress : bool
-            Display progress of post download
-        """
-        # Function to crop and download faces in a post, then delete the original image
-        def _get_faces_by_shortcode(shortcode):
-            for media_shortcode, media_id in download_instagram_by_shortcode(shortcode, only_images=True):
-                try:
-                    filename = "{}_{}.jpg".format(media_shortcode, media_id)
-                    crop_faces(filename)
-                    os.remove(filename)
-                except:
-                    pass
-        
-        # Check whether shortcodes have already been saved
-        shortcode_filename = "{}_shortcode_list.txt".format(self.username)
-        if Path(shortcode_filename).is_file():
-            shortcode_list = get_list_from_file(shortcode_filename)
-        else:
-            # Retrieve shortcodes
-            shortcode_list = self.get_post_shortcodes(display_progress)
-            write_list_to_file(shortcode_filename, shortcode_list)
-        
-        concurrent(_get_faces_by_shortcode, shortcode_list, progress_bar=display_progress)
-
-    def download_faces_and_colors(self, color_count=1, display_progress=True):
-        """Download all faces and predominant color of each post from an Instagram user in their highest quality
-
-        Parameters
-        ----------
-        color_count : int
-            Number of colors to grab from each image
-        display_progress : bool
-            Display progress of post download
-        """
-        # List of predominant colors in posts
-        colors = []
-    
-        # Function to crop and download faces in a post, then delete the original image
-        def _get_faces_and_colors_by_shortcode(shortcode):
-            for media_shortcode, media_id in download_instagram_by_shortcode(shortcode, only_images=True):
-                try:
-                    filename = "{}_{}.jpg".format(media_shortcode, media_id)
-                    colors.append(get_colors(filename, color_count=color_count))
-                    crop_faces(filename)
-                    os.remove(filename)
-                except:
-                    pass
         
         # Check whether shortcodes have already been saved
         shortcode_filename = "{}_shortcode_list.txt".format(self.username)

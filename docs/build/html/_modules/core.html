@@ -1,0 +1,628 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>core &#8212; cloudburst 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for core</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Core</span>
+<span class="sd">====</span>
+<span class="sd">A variety of general, reusable functions for cloudburst</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">    :toctree: generated/</span>
+
+<span class="sd">    concurrent</span>
+<span class="sd">    mkdir</span>
+<span class="sd">    query</span>
+<span class="sd">    write_list_to_file</span>
+<span class="sd">    get_list_from_file</span>
+<span class="sd">    write_dict_to_file</span>
+<span class="sd">    sort_tuples</span>
+<span class="sd">    line_coeff_from_segment</span>
+<span class="sd">    tri_centroid</span>
+<span class="sd">    quad_centroid</span>
+<span class="sd">    point_in_rect</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tqdm.contrib.concurrent</span> <span class="kn">import</span> <span class="n">thread_map</span><span class="p">,</span> <span class="n">process_map</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;concurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span> <span class="s2">&quot;write_list_to_file&quot;</span><span class="p">,</span> <span class="s2">&quot;get_list_from_file&quot;</span><span class="p">,</span> <span class="s2">&quot;write_dict_to_file&quot;</span><span class="p">,</span> <span class="s2">&quot;mkdir&quot;</span><span class="p">,</span> <span class="s2">&quot;sort_tuples&quot;</span><span class="p">,</span> <span class="s2">&quot;line_coeff_from_segment&quot;</span><span class="p">,</span> <span class="s2">&quot;tri_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;quad_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;point_in_rect&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="concurrent"><a class="viewcode-back" href="../generated/core.concurrent.html#core.concurrent">[docs]</a><span class="k">def</span> <span class="nf">concurrent</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="s2">&quot;threadpool&quot;</span><span class="p">,</span> <span class="n">progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Concurrently execute a function on a list</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : function</span>
+<span class="sd">        function to execute</span>
+
+<span class="sd">    input_list : list</span>
+<span class="sd">        list to execute function upon</span>
+
+<span class="sd">    executor : string</span>
+<span class="sd">        select between processpool (default) and threadpool</span>
+<span class="sd">    </span>
+<span class="sd">    progress_bar : boolean</span>
+<span class="sd">        display progress bar to show status</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    results : list</span>
+<span class="sd">        list of results returned from function</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">       import cloudburst as cb</span>
+
+<span class="sd">        def is_even(number):</span>
+<span class="sd">            if number%2 == 0:</span>
+<span class="sd">                return True</span>
+<span class="sd">            else:</span>
+<span class="sd">                return False</span>
+
+<span class="sd">        numbers = [0, 5, 12, 57, 8654]      </span>
+<span class="sd">        result = cb.concurrent(is_even, numbers)</span>
+<span class="sd">        print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># https://docs.python.org/3/library/concurrent.futures.html</span>
+
+    <span class="c1"># Get CPU count to use for max workers</span>
+    <span class="n">max_workers_count</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+
+    <span class="c1"># MultiThreading</span>
+    <span class="k">if</span> <span class="n">executor</span> <span class="o">==</span> <span class="s2">&quot;threadpool&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">progress_bar</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> generated an exception: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">thread_map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">)</span>
+    
+    <span class="c1"># MultiProcessing</span>
+    <span class="k">elif</span> <span class="n">executor</span> <span class="o">==</span> <span class="s2">&quot;processpool&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">progress_bar</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> generated an exception: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">process_map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">)</span>
+    
+    <span class="c1"># Invalid executor given</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="s2">&quot;Error: please use executor </span><span class="se">\&quot;</span><span class="s2">processpool</span><span class="se">\&quot;</span><span class="s2"> (default) or </span><span class="se">\&quot;</span><span class="s2">threadpool</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="query"><a class="viewcode-back" href="../generated/core.query.html#core.query">[docs]</a><span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Query folder by filetype</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        the folder to search within</span>
+
+<span class="sd">    filetypes : str</span>
+<span class="sd">        extension to locate files by (&quot;images&quot;, &quot;videos&quot;, &quot;audio&quot;, or custom entries)</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    filepaths : list</span>
+<span class="sd">        a list of filepaths to query matches</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+<span class="sd">        matches = cb.query(&quot;images&quot;, &quot;jpg&quot;)</span>
+<span class="sd">        print(matches)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># pre allocated lists of types</span>
+    <span class="n">image_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;gif&quot;</span><span class="p">,</span> <span class="s2">&quot;tif&quot;</span><span class="p">,</span> <span class="s2">&quot;tiff&quot;</span><span class="p">,</span> <span class="s2">&quot;webp&quot;</span><span class="p">,</span> <span class="s2">&quot;bmp&quot;</span><span class="p">]</span>
+    <span class="n">video_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;webm&quot;</span><span class="p">,</span> <span class="s2">&quot;ogg&quot;</span><span class="p">,</span> <span class="s2">&quot;mp4&quot;</span><span class="p">,</span> <span class="s2">&quot;m4p&quot;</span><span class="p">,</span> <span class="s2">&quot;m4v&quot;</span><span class="p">,</span> <span class="s2">&quot;mpg&quot;</span><span class="p">,</span> <span class="s2">&quot;mp2&quot;</span><span class="p">,</span> <span class="s2">&quot;mpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;mpe&quot;</span><span class="p">,</span> <span class="s2">&quot;mpv&quot;</span><span class="p">,</span> <span class="s2">&quot;avi&quot;</span><span class="p">,</span> <span class="s2">&quot;wmv&quot;</span><span class="p">,</span> <span class="s2">&quot;mov&quot;</span><span class="p">,</span> <span class="s2">&quot;qt&quot;</span><span class="p">,</span> <span class="s2">&quot;flv&quot;</span><span class="p">,</span> <span class="s2">&quot;swf&quot;</span><span class="p">,</span> <span class="s2">&quot;avchd&quot;</span><span class="p">]</span>
+    <span class="n">audio_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aac&quot;</span><span class="p">,</span> <span class="s2">&quot;aiff&quot;</span><span class="p">,</span> <span class="s2">&quot;alac&quot;</span><span class="p">,</span> <span class="s2">&quot;flac&quot;</span><span class="p">,</span> <span class="s2">&quot;m4a&quot;</span><span class="p">,</span> <span class="s2">&quot;m4p&quot;</span><span class="p">,</span> <span class="s2">&quot;mp3&quot;</span><span class="p">,</span> <span class="s2">&quot;ogg&quot;</span><span class="p">,</span> <span class="s2">&quot;wav&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;images&quot;</span><span class="p">:</span>
+        <span class="n">extensions</span> <span class="o">=</span> <span class="n">image_types</span>
+    <span class="k">elif</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;videos&quot;</span><span class="p">:</span>
+        <span class="n">extensions</span> <span class="o">=</span> <span class="n">video_types</span>    
+    <span class="k">elif</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;audio&quot;</span><span class="p">:</span>
+        <span class="n">extensions</span> <span class="o">=</span> <span class="n">audio_types</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filetypes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">extensions</span> <span class="o">=</span> <span class="n">filetypes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">filetypes</span><span class="p">]</span>
+    
+    <span class="c1"># Search for all matches in a list of file extensions</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">extensions</span><span class="p">:</span>
+        <span class="c1"># Correct for common potential error of entering extension with dot at the beginning</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="n">matches</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/*.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">ext</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">matches</span></div>
+
+<div class="viewcode-block" id="write_list_to_file"><a class="viewcode-back" href="../generated/core.write_list_to_file.html#core.write_list_to_file">[docs]</a><span class="k">def</span> <span class="nf">write_list_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write a list to a text file with each element on a new line</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        the filename that the list will be saved to</span>
+
+<span class="sd">    input_list : list</span>
+<span class="sd">        list to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+
+<span class="sd">        some_numbers = [i for i in range(50)]</span>
+<span class="sd">        cb.write_list_to_file(&quot;numbers.txt&quot;, some_numbers)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_list_from_file"><a class="viewcode-back" href="../generated/core.get_list_from_file.html#core.get_list_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_list_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a list from a text file with each element on a new line</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        the filename that the list was be saved to</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+
+<span class="sd">        some_numbers = [i for i in range(50)]</span>
+<span class="sd">        cb.write_list_to_file(&quot;numbers.txt&quot;, some_numbers)</span>
+<span class="sd">        print(cb.get_list_from_file(&quot;numbers.txt&quot;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="write_dict_to_file"><a class="viewcode-back" href="../generated/core.write_dict_to_file.html#core.write_dict_to_file">[docs]</a><span class="k">def</span> <span class="nf">write_dict_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write a dictionary to a json file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        the filename that the list will be saved to</span>
+
+<span class="sd">    input_dict : dictionary</span>
+<span class="sd">        dictionary to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+
+<span class="sd">        tesla_cars = {</span>
+<span class="sd">            &quot;roadster&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2008,</span>
+<span class="sd">                &quot;cost_usd&quot;: 98950</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;model s&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2012,</span>
+<span class="sd">                &quot;cost_usd&quot;: 79990</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;model x&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2016,</span>
+<span class="sd">                &quot;cost_usd&quot;: 84900</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;model 3&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2017,</span>
+<span class="sd">                &quot;cost_usd&quot;: 39990</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;model y&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2020,</span>
+<span class="sd">                &quot;cost_usd&quot;: 52990</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;cybertruck&quot;: {</span>
+<span class="sd">                &quot;year&quot;: 2021,</span>
+<span class="sd">                &quot;cost_usd&quot;: 39900</span>
+<span class="sd">            }</span>
+<span class="sd">        }</span>
+<span class="sd">        cb.write_dict_to_file(&quot;tesla.json&quot;, tesla_cars)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="mkdir"><a class="viewcode-back" href="../generated/core.mkdir.html#core.mkdir">[docs]</a><span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a directory given a directory name (or path), ignore if directory already exists</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dirname : str</span>
+<span class="sd">        name/path of the directory to write</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    path : path</span>
+<span class="sd">        path to created directory</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find all images ending in &quot;.jpg&quot; in &quot;./images&quot; folder</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        import cloudburst as cb</span>
+
+<span class="sd">        cb.mkdir(&quot;test_directory&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dirpath</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dirpath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">dirpath</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dirpath</span></div>
+
+
+<div class="viewcode-block" id="sort_tuples"><a class="viewcode-back" href="../generated/core.sort_tuples.html#core.sort_tuples">[docs]</a><span class="k">def</span> <span class="nf">sort_tuples</span><span class="p">(</span><span class="n">tuple_list</span><span class="p">,</span> <span class="n">element_to_sort_by</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sort a list of tuples by a given element (default 1 (second element))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tuple_list : list</span>
+<span class="sd">        an unsorted list of tuples</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    tuple_list : list</span>
+<span class="sd">        a list of tuples sorted by their 2nd term</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Sort a list of (key, value) by their values</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        import cloudburst as cb</span>
+<span class="sd">        tl = [(&quot;CONCURRENT&quot;, 5), (&quot;STUDIO&quot;, 2), (&quot;TEST&quot;, 8)]</span>
+<span class="sd">        tl = cb.tuple_list(tl)</span>
+<span class="sd">        print(tl)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">list_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tuple_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">list_length</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">list_length</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">element_to_sort_by</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">element_to_sort_by</span><span class="p">]:</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+    <span class="k">return</span> <span class="n">tuple_list</span></div>
+
+<div class="viewcode-block" id="line_coeff_from_segment"><a class="viewcode-back" href="../generated/core.line_coeff_from_segment.html#core.line_coeff_from_segment">[docs]</a><span class="k">def</span> <span class="nf">line_coeff_from_segment</span><span class="p">(</span><span class="n">point_a</span><span class="p">,</span> <span class="n">point_b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a line segment (two points), find the slope (m) and y-intercept (b) of line y=mx+b</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    point_a : tuple</span>
+<span class="sd">        coordinates of the first point</span>
+<span class="sd">    </span>
+<span class="sd">    point_b : tuple</span>
+<span class="sd">        coordinates of the second point</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    m : float</span>
+<span class="sd">        the line&#39;s slope</span>
+
+<span class="sd">    b : float</span>
+<span class="sd">        the line&#39;s y-intercept</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find the slope and y-intercept of a line defined by points (8, 3) and (-1, 10)</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+<span class="sd">        (m, b) = cb.line_coeff_from_segment((8, 3), (-1, 10))</span>
+<span class="sd">        print(&quot;line: y={}x+{}&quot;.format(m, b))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># slope of line</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1"># y-intercept of line</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span></div>
+
+<div class="viewcode-block" id="tri_centroid"><a class="viewcode-back" href="../generated/core.tri_centroid.html#core.tri_centroid">[docs]</a><span class="k">def</span> <span class="nf">tri_centroid</span><span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the centroid of any triangle given its vertices</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertex_a : tuple</span>
+<span class="sd">        coordinates of the first vertex</span>
+<span class="sd">    </span>
+<span class="sd">    vertex_b : tuple</span>
+<span class="sd">        coordinates of the second vertex</span>
+<span class="sd">    </span>
+<span class="sd">    vertex_c : tuple</span>
+<span class="sd">        coordinates of the third vertex</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    centroid : tuple</span>
+<span class="sd">        the triangle&#39;s centroid</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find the centroid of the traingle formed by points (2, 4), (6, 1), (8, 10)</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cloudburst as cb</span>
+<span class="sd">        centroid = cb.tri_centroid((2, 4), (6, 1), (8, 10))</span>
+<span class="sd">        print(centroid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># average x coords</span>
+    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">3</span>
+    <span class="c1"># average y coords</span>
+    <span class="n">centroid_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">3</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">centroid_x</span><span class="p">,</span> <span class="n">centroid_y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="quad_centroid"><a class="viewcode-back" href="../generated/core.quad_centroid.html#core.quad_centroid">[docs]</a><span class="k">def</span> <span class="nf">quad_centroid</span><span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">,</span> <span class="n">vertex_d</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the centroid of any quadrilateral given its vertices</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertex_a : tuple</span>
+<span class="sd">        coordinates of the first vertex</span>
+<span class="sd">    </span>
+<span class="sd">    vertex_b : tuple</span>
+<span class="sd">        coordinates of the second vertex</span>
+<span class="sd">    </span>
+<span class="sd">    vertex_c : tuple</span>
+<span class="sd">        coordinates of the third vertex</span>
+<span class="sd">    </span>
+<span class="sd">    vertex_d : tuple</span>
+<span class="sd">        coordinates of the fourth vertex</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    centroid : tuple</span>
+<span class="sd">        the quadrilateral&#39;s centroid</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find the centroid of the quadrilateral formed by vertices (1, 0), (2, 8), (9, -1), (10, 2)</span>
+
+<span class="sd">    .. code-block:: python    </span>
+
+<span class="sd">        import cloudburst as cb</span>
+<span class="sd">        centroid = cb.quad_centroid((1, 0), (2, 8), (9, -1), (10, 2))</span>
+<span class="sd">        print(centroid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Break quadrilateral into component triangles</span>
+    <span class="n">triangles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">triangle_a</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">)</span>
+    <span class="n">triangle_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_d</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">)</span>
+    <span class="n">triangle_c</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_d</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">)</span>
+    <span class="n">triangle_d</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_d</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">)</span>
+    <span class="n">triangles</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">triangle_a</span><span class="p">,</span> <span class="n">triangle_b</span><span class="p">,</span> <span class="n">triangle_c</span><span class="p">,</span> <span class="n">triangle_d</span><span class="p">))</span>
+
+    <span class="c1"># Calculate centroids of triangles</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">triangle</span> <span class="ow">in</span> <span class="n">triangles</span><span class="p">:</span>
+        <span class="n">centroids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tri_centroid</span><span class="p">(</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="c1"># Sort centroids by y value to ensure correct calculation</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="n">sort_tuples</span><span class="p">(</span><span class="n">centroids</span><span class="p">)</span>
+    <span class="c1"># Ensure that vertex a has a lower x value than vertex b</span>
+    <span class="k">if</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
+    
+    <span class="c1"># Ensure that vertex d has a lower x value than vertex c</span>
+    <span class="k">if</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+
+    <span class="c1"># Equation of line running between abc&#39;s centroid and adc&#39;s centroid</span>
+    <span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">b1</span><span class="p">)</span> <span class="o">=</span> <span class="n">line_coeff_from_segment</span><span class="p">(</span><span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1"># Equation of line running between adb&#39;s centroid and bdc&#39;s centroid</span>
+    <span class="p">(</span><span class="n">m2</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">=</span> <span class="n">line_coeff_from_segment</span><span class="p">(</span><span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+    <span class="c1"># Calculate centroid x coordinate by setting the two lines equal to each other</span>
+    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">m1</span> <span class="o">-</span> <span class="n">m2</span><span class="p">)</span>
+    <span class="c1"># Plug the x coordinate into the first line</span>
+    <span class="n">centroid_y</span> <span class="o">=</span> <span class="n">m1</span> <span class="o">*</span> <span class="n">centroid_x</span> <span class="o">+</span> <span class="n">b1</span>
+
+    <span class="c1"># Set centroid as tuple of two points, integers if specified</span>
+    <span class="k">if</span> <span class="n">integer</span><span class="p">:</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">centroid_x</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">centroid_y</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="p">(</span><span class="n">centroid_x</span><span class="p">,</span> <span class="n">centroid_y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">centroid</span></div>
+
+<div class="viewcode-block" id="point_in_rect"><a class="viewcode-back" href="../generated/core.point_in_rect.html#core.point_in_rect">[docs]</a><span class="k">def</span> <span class="nf">point_in_rect</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+    <span class="c1">### NEEDS WORK</span>
+    <span class="sd">&quot;&quot;&quot;Given a rectangle and a point, check if the point is inside the rectangle</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rectangle : list</span>
+<span class="sd">        coordinates of rectangle vertices</span>
+<span class="sd">    </span>
+<span class="sd">    point : tuple</span>
+<span class="sd">        coordinates of point to check </span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    within_rectangle : boolean</span>
+<span class="sd">        whether or not the point is in the rectangle</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Check whether or not a point exists within a rectangle </span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        import cloudburst as cb</span>
+
+<span class="sd">        rect = [(1, 4), (1, 8), (2, 8), (2, 4)]</span>
+<span class="sd">        print(cb.point_in_rect(rect, (1,1)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">if</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cloudburst</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social_analytics.html">Social Analytics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, CONCURRENT STUDIO™.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
