@@ -13,7 +13,7 @@ A variety of general, reusable functions for cloudburst
     write_list_to_file
     get_list_from_file
     write_dict_to_file
-    sort_tuples
+    get_dict_from_file
     line_coeff_from_segment
     tri_centroid
     quad_centroid
@@ -27,7 +27,18 @@ from pathlib import Path
 from tqdm.contrib.concurrent import thread_map, process_map
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-__all__ = ["concurrent", "query", "write_list_to_file", "get_list_from_file", "write_dict_to_file", "mkdir", "sort_tuples", "line_coeff_from_segment", "tri_centroid", "quad_centroid", "point_in_rect"]
+__all__ = [
+    "concurrent",
+    "query",
+    "write_list_to_file",
+    "get_list_from_file",
+    "write_dict_to_file",
+    "mkdir",
+    "line_coeff_from_segment",
+    "tri_centroid",
+    "quad_centroid",
+    "point_in_rect",
+]
 
 
 def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc=""):
@@ -73,7 +84,7 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
     # https://docs.python.org/3/library/concurrent.futures.html
 
     # Get CPU count to use for max workers
-    max_workers_count = multiprocessing.cpu_count()
+    max_workers_count = multiprocessing.cpu_count() - 2
 
     # MultiThreading
     if executor == "threadpool":
@@ -90,8 +101,10 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
                         print("{} generated an exception: {}".format(val, exc))
             return results
         else:
-            return thread_map(func, input_list, max_workers=max_workers_count, desc=desc)
-    
+            return thread_map(
+                func, input_list, max_workers=max_workers_count, desc=desc
+            )
+
     # MultiProcessing
     elif executor == "processpool":
         if progress_bar == False:
@@ -107,11 +120,14 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
                         print("{} generated an exception: {}".format(val, exc))
             return results
         else:
-            return process_map(func, input_list, max_workers=max_workers_count, desc=desc)
-    
+            return process_map(
+                func, input_list, max_workers=max_workers_count, desc=desc
+            )
+
     # Invalid executor given
     else:
-        raise("Error: please use executor \"processpool\" (default) or \"threadpool\"")
+        raise ('Error: please use executor "processpool" (default) or "threadpool"')
+
 
 def query(folder, filetypes):
     """Query folder by filetype
@@ -144,12 +160,30 @@ def query(folder, filetypes):
 
     # pre allocated lists of types
     image_types = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "webp", "bmp"]
-    video_types = ["webm", "ogg", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "avi", "wmv", "mov", "qt", "flv", "swf", "avchd"]
+    video_types = [
+        "webm",
+        "ogg",
+        "mp4",
+        "m4p",
+        "m4v",
+        "mpg",
+        "mp2",
+        "mpeg",
+        "mpe",
+        "mpv",
+        "avi",
+        "wmv",
+        "mov",
+        "qt",
+        "flv",
+        "swf",
+        "avchd",
+    ]
     audio_types = ["aac", "aiff", "alac", "flac", "m4a", "m4p", "mp3", "ogg", "wav"]
     if filetypes == "images":
         extensions = image_types
     elif filetypes == "videos":
-        extensions = video_types    
+        extensions = video_types
     elif filetypes == "audio":
         extensions = audio_types
     else:
@@ -157,7 +191,7 @@ def query(folder, filetypes):
             extensions = filetypes
         else:
             extensions = [filetypes]
-    
+
     # Search for all matches in a list of file extensions
     for ext in extensions:
         # Correct for common potential error of entering extension with dot at the beginning
@@ -167,6 +201,7 @@ def query(folder, filetypes):
         matches.extend(glob("{}/*.{}".format(folder, ext)))
 
     return matches
+
 
 def write_list_to_file(filename, input_list):
     """Write a list to a text file with each element on a new line
@@ -191,9 +226,9 @@ def write_list_to_file(filename, input_list):
         cb.write_list_to_file("numbers.txt", some_numbers)
     """
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         for item in input_list:
-            f.write('{}\n'.format(item))
+            f.write("{}\n".format(item))
 
 
 def get_list_from_file(filename):
@@ -217,9 +252,10 @@ def get_list_from_file(filename):
         print(cb.get_list_from_file("numbers.txt"))
     """
 
-    return [line.rstrip('\n') for line in open(filename)]
+    return [line.rstrip("\n") for line in open(filename)]
 
-def write_dict_to_file(filename, input_dict):
+
+def write_dict_to_file(filename, input_dict, minimize=False):
     """Write a dictionary to a json file
 
     Parameters
@@ -267,8 +303,20 @@ def write_dict_to_file(filename, input_dict):
         cb.write_dict_to_file("tesla.json", tesla_cars)
     """
 
-    with open(filename, 'w') as f:
-        f.write(json.dumps(input_dict, indent=4))
+    with open(filename, "w") as f:
+        if minimize:
+            f.write(json.dumps(input_dict, separators=(",", ":")))
+        else:
+            f.write(json.dumps(input_dict, indent=4))
+
+
+def get_dict_from_file(filename):
+    try:
+        with open(filename) as f:
+            return json.load(f)
+    except:
+        return None
+
 
 def mkdir(dirname):
     """Make a directory given a directory name (or path), ignore if directory already exists
@@ -300,40 +348,6 @@ def mkdir(dirname):
     return dirpath
 
 
-def sort_tuples(tuple_list, element_to_sort_by=1):
-    """Sort a list of tuples by a given element (default 1 (second element))
-
-    Parameters
-    ----------
-    tuple_list : list
-        an unsorted list of tuples
-
-    Return
-    ------
-    tuple_list : list
-        a list of tuples sorted by their 2nd term
-
-    Examples
-    --------
-    Sort a list of (key, value) by their values
-    
-    .. code-block:: python
-    
-        import cloudburst as cb
-        tl = [("CONCURRENT", 5), ("STUDIO", 2), ("TEST", 8)]
-        tl = cb.tuple_list(tl)
-        print(tl)
-    """
-    
-    list_length = len(tuple_list)
-    for i in range(0, list_length):
-        for j in range(0, list_length - i - 1):
-            if tuple_list[j][element_to_sort_by] > tuple_list[j + 1][element_to_sort_by]:
-                tmp = tuple_list[j]
-                tuple_list[j] = tuple_list[j + 1]
-                tuple_list[j + 1] = tmp
-    return tuple_list
-
 def line_coeff_from_segment(point_a, point_b):
     """Given a line segment (two points), find the slope (m) and y-intercept (b) of line y=mx+b
 
@@ -364,11 +378,12 @@ def line_coeff_from_segment(point_a, point_b):
         print("line: y={}x+{}".format(m, b))
     """
     # slope of line
-    m = (point_b[1] - point_a[1])/(point_b[0] - point_a[0])
+    m = (point_b[1] - point_a[1]) / (point_b[0] - point_a[0])
     # y-intercept of line
-    b = point_a[1] - (m*point_a[0])
+    b = point_a[1] - (m * point_a[0])
 
     return m, b
+
 
 def tri_centroid(vertex_a, vertex_b, vertex_c):
     """Find the centroid of any triangle given its vertices
@@ -400,11 +415,12 @@ def tri_centroid(vertex_a, vertex_b, vertex_c):
         print(centroid)
     """
     # average x coords
-    centroid_x = (vertex_a[0] + vertex_b[0] + vertex_c[0])/3
+    centroid_x = (vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3
     # average y coords
-    centroid_y = (vertex_a[1] + vertex_b[1] + vertex_c[1])/3
-    
+    centroid_y = (vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3
+
     return (centroid_x, centroid_y)
+
 
 def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     """Find the centroid of any quadrilateral given its vertices
@@ -451,11 +467,11 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     for triangle in triangles:
         centroids.append(tri_centroid(triangle[0], triangle[1], triangle[2]))
     # Sort centroids by y value to ensure correct calculation
-    centroids = sort_tuples(centroids)
+    centroids = sorted(centroids, key=lambda x: x[1])
     # Ensure that vertex a has a lower x value than vertex b
     if centroids[0][0] > centroids[1][0]:
         centroids = [centroids[1], centroids[0], centroids[2], centroids[3]]
-    
+
     # Ensure that vertex d has a lower x value than vertex c
     if centroids[3][0] > centroids[2][0]:
         centroids = [centroids[0], centroids[1], centroids[3], centroids[2]]
@@ -466,7 +482,7 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     (m2, b2) = line_coeff_from_segment(centroids[1], centroids[3])
 
     # Calculate centroid x coordinate by setting the two lines equal to each other
-    centroid_x = (b2 - b1)/(m1 - m2)
+    centroid_x = (b2 - b1) / (m1 - m2)
     # Plug the x coordinate into the first line
     centroid_y = m1 * centroid_x + b1
 
@@ -476,6 +492,7 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     else:
         centroid = (centroid_x, centroid_y)
     return centroid
+
 
 def point_in_rect(rect, point):
     ### NEEDS WORK
@@ -504,7 +521,7 @@ def point_in_rect(rect, point):
 
         rect = [(1, 4), (1, 8), (2, 8), (2, 4)]
         print(cb.point_in_rect(rect, (1,1)))
-    """    
+    """
     if point[0] < rect[0]:
         return False
     elif point[1] < rect[1]:

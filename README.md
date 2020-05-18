@@ -42,9 +42,6 @@ import cloudburst as cb
         - Read a file line by line into a list
     - `write_dict_to_file`
         - Write a dictionary to a .json file
-    - `sort_tuples`
-        - Sort a list of tuples by their second element
-- Math
     - `line_coeff_from_segment`
         - Get slope and y intersect given two points on a line
     - `tri_centroid`
@@ -67,14 +64,31 @@ from cloudburst import social as cbs
         - Constructor method
     - `download_profile_picture`
         - Download an Instagram user's profile picure in its highest quality
-    - `get_post_shortcodes`
-        - Retrieve all shortcodes associated with a user, saving them in a text file
+    - `get_previews`
+        - Get low-res Instagram previews for media
+    - `download_stories`
+        - Download all stories
+    - `download_highlights`
+        - Download all highlights
+    - `download_thumbnails`
+        - Download all thumbnails
     - `download_posts`
         - Download all posts from an Instagram user
-    - `download_faces`
-        - Download all cropped faces present in a given user's posts
-    - `download_faces_and_colors`
-        - Same as `download_faces`, but with the addition of retrieving color palettes from the posts
+    - `get_post_by_number`
+        - Find the shortcode of a post based on its number (-1 = first post, list notation)
+    - `search_captions_by_keyword`
+        - Search all captions for a specific keyword
+    - `get_tagged_users` 
+        - Get a ranked list of all tagged users
+    - `get_tagged_users_in_captions` 
+        - Get a ranked list of all tagged users in captions
+    - `get_hashtags`
+        - Get all hashtags posted by a user
+    - `get_posts_by_like_count`
+        - Ranked posts by descending like count
+    - `get_lifetime_like_count`
+        - Get total number of likes a user has received over their lifetime
+    
 - `download_instagram_by_shortcode`
     - Download media and data from a posed given its shortcode 
 
@@ -99,31 +113,33 @@ from cloudburst import vision as cbv
         - Compute the percent difference between two given colors
     - `get_colors`
         - Get a color palette from a given image
-- Image
+-  Face
+    - `get_faces`
+        - Get all faces
+    - `get_eyes`
+        - Get all eyes
+    - `face_match`
+        - Compare a list of unknown faces against a known one
+    - `get_landmarks`
+        - Get 68 (or 5) facial landmarks from an image
+    - `average_faces`
+        - Compute the average of all faces in a directory
+-  Face3D
+    - `face_to_3d`
+        - Transform a 2D image of a face into a 3D model
+- I/O
     - `download`
         - Download an image or video from a url
-    - `draw_points_on_image`
-        - Draw a set of points on top of an image
     - `write_points_to_disk`
         - Write a list of points to disk
     - `get_points_from_disk`
         - Get points saved through above function
+    - `load_png`
+        - Load a png file, transforming the alpha channel into a given color
+- Transform
+    - `draw_points_on_image`
+        - Draw a set of points on top of an image
+    - `draw_rect_on_image`
+        - Draw a rectangle on top of an image
     - `create_collage`
         - Create a collage from a list of images
--  Face
-    - `crop_faces`
-        - Crop and save all faces in a list of images
-    - `crop_eyes`
-        - Crop and save all eyes in a list of images
-    - `face_match`
-        - Compare a list of unknown faces against a known one
-    - `get_landmarks`
-        - Get 68 facial landmarks from an image
-    - `get_5_landmarks`
-        - Get 5 facial landmarks from an image
-    - `write_landmarks_database`
-        - Save a list of 68 facial landmarks as a text file
-    - `write_5_landmarks_database`
-        - Save a list of 5 facial landmarks as a text file
-    - `average_faces`
-        - Compute the average of all faces in a directory

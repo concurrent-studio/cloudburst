@@ -21,6 +21,7 @@ API documentation
 
     core
     social
+    vision
 
 Advanced topics
 ---------------

@@ -46,7 +46,7 @@
 <span class="sd">    write_list_to_file</span>
 <span class="sd">    get_list_from_file</span>
 <span class="sd">    write_dict_to_file</span>
-<span class="sd">    sort_tuples</span>
+<span class="sd">    get_dict_from_file</span>
 <span class="sd">    line_coeff_from_segment</span>
 <span class="sd">    tri_centroid</span>
 <span class="sd">    quad_centroid</span>
@@ -60,7 +60,18 @@
 <span class="kn">from</span> <span class="nn">tqdm.contrib.concurrent</span> <span class="kn">import</span> <span class="n">thread_map</span><span class="p">,</span> <span class="n">process_map</span>
 <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;concurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span> <span class="s2">&quot;write_list_to_file&quot;</span><span class="p">,</span> <span class="s2">&quot;get_list_from_file&quot;</span><span class="p">,</span> <span class="s2">&quot;write_dict_to_file&quot;</span><span class="p">,</span> <span class="s2">&quot;mkdir&quot;</span><span class="p">,</span> <span class="s2">&quot;sort_tuples&quot;</span><span class="p">,</span> <span class="s2">&quot;line_coeff_from_segment&quot;</span><span class="p">,</span> <span class="s2">&quot;tri_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;quad_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;point_in_rect&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;concurrent&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;write_list_to_file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_list_from_file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;write_dict_to_file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mkdir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;line_coeff_from_segment&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;tri_centroid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;quad_centroid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;point_in_rect&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <div class="viewcode-block" id="concurrent"><a class="viewcode-back" href="../generated/core.concurrent.html#core.concurrent">[docs]</a><span class="k">def</span> <span class="nf">concurrent</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="s2">&quot;threadpool&quot;</span><span class="p">,</span> <span class="n">progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
@@ -106,7 +117,7 @@
     <span class="c1"># https://docs.python.org/3/library/concurrent.futures.html</span>
 
     <span class="c1"># Get CPU count to use for max workers</span>
-    <span class="n">max_workers_count</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="n">max_workers_count</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">2</span>
 
     <span class="c1"># MultiThreading</span>
     <span class="k">if</span> <span class="n">executor</span> <span class="o">==</span> <span class="s2">&quot;threadpool&quot;</span><span class="p">:</span>
@@ -123,8 +134,10 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> generated an exception: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">results</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">thread_map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">)</span>
-    
+            <span class="k">return</span> <span class="n">thread_map</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span>
+            <span class="p">)</span>
+
     <span class="c1"># MultiProcessing</span>
     <span class="k">elif</span> <span class="n">executor</span> <span class="o">==</span> <span class="s2">&quot;processpool&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">progress_bar</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
@@ -140,11 +153,14 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> generated an exception: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">results</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">process_map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">)</span>
-    
+            <span class="k">return</span> <span class="n">process_map</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers_count</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span>
+            <span class="p">)</span>
+
     <span class="c1"># Invalid executor given</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span><span class="p">(</span><span class="s2">&quot;Error: please use executor </span><span class="se">\&quot;</span><span class="s2">processpool</span><span class="se">\&quot;</span><span class="s2"> (default) or </span><span class="se">\&quot;</span><span class="s2">threadpool</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="p">(</span><span class="s1">&#39;Error: please use executor &quot;processpool&quot; (default) or &quot;threadpool&quot;&#39;</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="query"><a class="viewcode-back" href="../generated/core.query.html#core.query">[docs]</a><span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">filetypes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Query folder by filetype</span>
@@ -177,12 +193,30 @@
 
     <span class="c1"># pre allocated lists of types</span>
     <span class="n">image_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;gif&quot;</span><span class="p">,</span> <span class="s2">&quot;tif&quot;</span><span class="p">,</span> <span class="s2">&quot;tiff&quot;</span><span class="p">,</span> <span class="s2">&quot;webp&quot;</span><span class="p">,</span> <span class="s2">&quot;bmp&quot;</span><span class="p">]</span>
-    <span class="n">video_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;webm&quot;</span><span class="p">,</span> <span class="s2">&quot;ogg&quot;</span><span class="p">,</span> <span class="s2">&quot;mp4&quot;</span><span class="p">,</span> <span class="s2">&quot;m4p&quot;</span><span class="p">,</span> <span class="s2">&quot;m4v&quot;</span><span class="p">,</span> <span class="s2">&quot;mpg&quot;</span><span class="p">,</span> <span class="s2">&quot;mp2&quot;</span><span class="p">,</span> <span class="s2">&quot;mpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;mpe&quot;</span><span class="p">,</span> <span class="s2">&quot;mpv&quot;</span><span class="p">,</span> <span class="s2">&quot;avi&quot;</span><span class="p">,</span> <span class="s2">&quot;wmv&quot;</span><span class="p">,</span> <span class="s2">&quot;mov&quot;</span><span class="p">,</span> <span class="s2">&quot;qt&quot;</span><span class="p">,</span> <span class="s2">&quot;flv&quot;</span><span class="p">,</span> <span class="s2">&quot;swf&quot;</span><span class="p">,</span> <span class="s2">&quot;avchd&quot;</span><span class="p">]</span>
+    <span class="n">video_types</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;webm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ogg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mp4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;m4p&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;m4v&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mpg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mp2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mpeg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mpe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mpv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;avi&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;wmv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mov&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;qt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;flv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;swf&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;avchd&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="n">audio_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aac&quot;</span><span class="p">,</span> <span class="s2">&quot;aiff&quot;</span><span class="p">,</span> <span class="s2">&quot;alac&quot;</span><span class="p">,</span> <span class="s2">&quot;flac&quot;</span><span class="p">,</span> <span class="s2">&quot;m4a&quot;</span><span class="p">,</span> <span class="s2">&quot;m4p&quot;</span><span class="p">,</span> <span class="s2">&quot;mp3&quot;</span><span class="p">,</span> <span class="s2">&quot;ogg&quot;</span><span class="p">,</span> <span class="s2">&quot;wav&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;images&quot;</span><span class="p">:</span>
         <span class="n">extensions</span> <span class="o">=</span> <span class="n">image_types</span>
     <span class="k">elif</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;videos&quot;</span><span class="p">:</span>
-        <span class="n">extensions</span> <span class="o">=</span> <span class="n">video_types</span>    
+        <span class="n">extensions</span> <span class="o">=</span> <span class="n">video_types</span>
     <span class="k">elif</span> <span class="n">filetypes</span> <span class="o">==</span> <span class="s2">&quot;audio&quot;</span><span class="p">:</span>
         <span class="n">extensions</span> <span class="o">=</span> <span class="n">audio_types</span>
     <span class="k">else</span><span class="p">:</span>
@@ -190,7 +224,7 @@
             <span class="n">extensions</span> <span class="o">=</span> <span class="n">filetypes</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">filetypes</span><span class="p">]</span>
-    
+
     <span class="c1"># Search for all matches in a list of file extensions</span>
     <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">extensions</span><span class="p">:</span>
         <span class="c1"># Correct for common potential error of entering extension with dot at the beginning</span>
@@ -200,6 +234,7 @@
         <span class="n">matches</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/*.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">ext</span><span class="p">)))</span>
 
     <span class="k">return</span> <span class="n">matches</span></div>
+
 
 <div class="viewcode-block" id="write_list_to_file"><a class="viewcode-back" href="../generated/core.write_list_to_file.html#core.write_list_to_file">[docs]</a><span class="k">def</span> <span class="nf">write_list_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Write a list to a text file with each element on a new line</span>
@@ -224,9 +259,9 @@
 <span class="sd">        cb.write_list_to_file(&quot;numbers.txt&quot;, some_numbers)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="get_list_from_file"><a class="viewcode-back" href="../generated/core.get_list_from_file.html#core.get_list_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_list_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
@@ -250,9 +285,10 @@
 <span class="sd">        print(cb.get_list_from_file(&quot;numbers.txt&quot;))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)]</span></div>
+    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="write_dict_to_file"><a class="viewcode-back" href="../generated/core.write_dict_to_file.html#core.write_dict_to_file">[docs]</a><span class="k">def</span> <span class="nf">write_dict_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_dict_to_file"><a class="viewcode-back" href="../generated/core.write_dict_to_file.html#core.write_dict_to_file">[docs]</a><span class="k">def</span> <span class="nf">write_dict_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">,</span> <span class="n">minimize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Write a dictionary to a json file</span>
 
 <span class="sd">    Parameters</span>
@@ -300,8 +336,20 @@
 <span class="sd">        cb.write_dict_to_file(&quot;tesla.json&quot;, tesla_cars)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span></div>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">minimize</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_dict_from_file"><a class="viewcode-back" href="../generated/core.get_dict_from_file.html#core.get_dict_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_dict_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
 
 <div class="viewcode-block" id="mkdir"><a class="viewcode-back" href="../generated/core.mkdir.html#core.mkdir">[docs]</a><span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Make a directory given a directory name (or path), ignore if directory already exists</span>
@@ -333,40 +381,6 @@
     <span class="k">return</span> <span class="n">dirpath</span></div>
 
 
-<div class="viewcode-block" id="sort_tuples"><a class="viewcode-back" href="../generated/core.sort_tuples.html#core.sort_tuples">[docs]</a><span class="k">def</span> <span class="nf">sort_tuples</span><span class="p">(</span><span class="n">tuple_list</span><span class="p">,</span> <span class="n">element_to_sort_by</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Sort a list of tuples by a given element (default 1 (second element))</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    tuple_list : list</span>
-<span class="sd">        an unsorted list of tuples</span>
-
-<span class="sd">    Return</span>
-<span class="sd">    ------</span>
-<span class="sd">    tuple_list : list</span>
-<span class="sd">        a list of tuples sorted by their 2nd term</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    Sort a list of (key, value) by their values</span>
-<span class="sd">    </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">    </span>
-<span class="sd">        import cloudburst as cb</span>
-<span class="sd">        tl = [(&quot;CONCURRENT&quot;, 5), (&quot;STUDIO&quot;, 2), (&quot;TEST&quot;, 8)]</span>
-<span class="sd">        tl = cb.tuple_list(tl)</span>
-<span class="sd">        print(tl)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">list_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tuple_list</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">list_length</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">list_length</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">element_to_sort_by</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">element_to_sort_by</span><span class="p">]:</span>
-                <span class="n">tmp</span> <span class="o">=</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-                <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="n">tuple_list</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
-    <span class="k">return</span> <span class="n">tuple_list</span></div>
-
 <div class="viewcode-block" id="line_coeff_from_segment"><a class="viewcode-back" href="../generated/core.line_coeff_from_segment.html#core.line_coeff_from_segment">[docs]</a><span class="k">def</span> <span class="nf">line_coeff_from_segment</span><span class="p">(</span><span class="n">point_a</span><span class="p">,</span> <span class="n">point_b</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Given a line segment (two points), find the slope (m) and y-intercept (b) of line y=mx+b</span>
 
@@ -397,11 +411,12 @@
 <span class="sd">        print(&quot;line: y={}x+{}&quot;.format(m, b))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># slope of line</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">point_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="c1"># y-intercept of line</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">point_a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span></div>
+
 
 <div class="viewcode-block" id="tri_centroid"><a class="viewcode-back" href="../generated/core.tri_centroid.html#core.tri_centroid">[docs]</a><span class="k">def</span> <span class="nf">tri_centroid</span><span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find the centroid of any triangle given its vertices</span>
@@ -433,11 +448,12 @@
 <span class="sd">        print(centroid)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># average x coords</span>
-    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">3</span>
+    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">3</span>
     <span class="c1"># average y coords</span>
-    <span class="n">centroid_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">3</span>
-    
+    <span class="n">centroid_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vertex_c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">3</span>
+
     <span class="k">return</span> <span class="p">(</span><span class="n">centroid_x</span><span class="p">,</span> <span class="n">centroid_y</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="quad_centroid"><a class="viewcode-back" href="../generated/core.quad_centroid.html#core.quad_centroid">[docs]</a><span class="k">def</span> <span class="nf">quad_centroid</span><span class="p">(</span><span class="n">vertex_a</span><span class="p">,</span> <span class="n">vertex_b</span><span class="p">,</span> <span class="n">vertex_c</span><span class="p">,</span> <span class="n">vertex_d</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find the centroid of any quadrilateral given its vertices</span>
@@ -484,11 +500,11 @@
     <span class="k">for</span> <span class="n">triangle</span> <span class="ow">in</span> <span class="n">triangles</span><span class="p">:</span>
         <span class="n">centroids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tri_centroid</span><span class="p">(</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
     <span class="c1"># Sort centroids by y value to ensure correct calculation</span>
-    <span class="n">centroids</span> <span class="o">=</span> <span class="n">sort_tuples</span><span class="p">(</span><span class="n">centroids</span><span class="p">)</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">centroids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="c1"># Ensure that vertex a has a lower x value than vertex b</span>
     <span class="k">if</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
         <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
-    
+
     <span class="c1"># Ensure that vertex d has a lower x value than vertex c</span>
     <span class="k">if</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
         <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">centroids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
@@ -499,7 +515,7 @@
     <span class="p">(</span><span class="n">m2</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">=</span> <span class="n">line_coeff_from_segment</span><span class="p">(</span><span class="n">centroids</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
 
     <span class="c1"># Calculate centroid x coordinate by setting the two lines equal to each other</span>
-    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">m1</span> <span class="o">-</span> <span class="n">m2</span><span class="p">)</span>
+    <span class="n">centroid_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">m1</span> <span class="o">-</span> <span class="n">m2</span><span class="p">)</span>
     <span class="c1"># Plug the x coordinate into the first line</span>
     <span class="n">centroid_y</span> <span class="o">=</span> <span class="n">m1</span> <span class="o">*</span> <span class="n">centroid_x</span> <span class="o">+</span> <span class="n">b1</span>
 
@@ -509,6 +525,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">centroid</span> <span class="o">=</span> <span class="p">(</span><span class="n">centroid_x</span><span class="p">,</span> <span class="n">centroid_y</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">centroid</span></div>
+
 
 <div class="viewcode-block" id="point_in_rect"><a class="viewcode-back" href="../generated/core.point_in_rect.html#core.point_in_rect">[docs]</a><span class="k">def</span> <span class="nf">point_in_rect</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
     <span class="c1">### NEEDS WORK</span>
@@ -537,7 +554,7 @@
 
 <span class="sd">        rect = [(1, 4), (1, 8), (2, 8), (2, 4)]</span>
 <span class="sd">        print(cb.point_in_rect(rect, (1,1)))</span>
-<span class="sd">    &quot;&quot;&quot;</span>    
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">elif</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>

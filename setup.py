@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="cloudburst",
-    version="0.1.2",
+    version="0.1.3",
     packages=find_packages(exclude=['tests*']),
     license="MIT",
     description="A python package for computational design by CONCURRENT STUDIO\u2122",
@@ -13,7 +13,7 @@ setup(
     author="concurrent-studio",
     author_email="info@concurrent.studio",
     package_data={
-        'cloudburst': ['cloudburst/vision/models/*.xml']
+        'cloudburst': ['cloudburst/vision/models/*.(mat|xml)']
     },
     classifiers=[
         "Programming Language :: Python",
