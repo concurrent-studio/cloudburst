@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip3 install sphinx pytest tqdm
+          command: pip3 install sphinx pytest cloudburst
       - run:
           name: Test
           command: pytest
@@ -23,7 +23,7 @@ jobs:
           command: pip3 install sphinx sphinx_rtd_theme pytest numpydoc
       - run:
           name: Build docs
-          command: cd docs/ && make html
+          command: cd docs/ && make clean && make html
       - persist_to_workspace:
           root: docs/build
           paths: html
