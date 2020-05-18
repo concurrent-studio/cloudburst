@@ -1,0 +1,259 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>vision.average_faces &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vision.face_to_3d" href="vision.face_to_3d.html" />
+    <link rel="prev" title="vision.get_landmarks" href="vision.get_landmarks.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social.html">Social</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../vision.html">Vision</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#color">Color</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../vision.html#face">Face</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="vision.get_faces.html">vision.get_faces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vision.get_eyes.html">vision.get_eyes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vision.get_landmarks.html">vision.get_landmarks</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">vision.average_faces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#face3d">Face3D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#i-o">I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vision.html#transform">Transform</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../vision.html">Vision</a> &raquo;</li>
+        
+      <li>vision.average_faces</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/vision.average_faces.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="vision-average-faces">
+<h1>vision.average_faces<a class="headerlink" href="#vision-average-faces" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="vision.average_faces">
+<code class="descclassname">vision.</code><code class="descname">average_faces</code><span class="sig-paren">(</span><em>directory_path</em>, <em>output_filepath</em>, <em>output_dimensions=(600</em>, <em>600)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vision/face.html#average_faces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vision.average_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Average a set of faces into a single composite image</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>directory_path</strong> (<em>str</em>) – path to directory inside which all images will be averaged</li>
+<li><strong>output_filepath</strong> (<em>str</em>) – path that the image will be saved to</li>
+<li><strong>output_dimensions</strong> (<em>tuple</em>) – size of output image</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Average all faces in ‘./faces’ folder</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">vision</span> <span class="k">as</span> <span class="n">cbv</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cbv</span><span class="o">.</span><span class="n">average_faces</span><span class="p">(</span><span class="s2">&quot;./test_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;average.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="vision.face_to_3d.html" class="btn btn-neutral float-right" title="vision.face_to_3d" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="vision.get_landmarks.html" class="btn btn-neutral float-left" title="vision.get_landmarks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

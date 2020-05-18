@@ -27,14 +27,10 @@ def color_delta(color1, color2):
     --------
     Find the difference between (223, 42, 5) and (47, 156, 89)
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-
-        difference = cbv.color_delta((223, 42, 5), (47, 156, 89))
-        print(difference)
+    >>> from cloudburst import vision as cbv
+    >>> difference = cbv.color_delta((223, 42, 5), (47, 156, 89))
+    >>> print(difference)
     """
-
     r1, g1, b1 = color1
     r2, g2, b2 = color2
     if all(0 <= i <= 255 for i in [r1, g1, b1, r2, g2, b2]):
@@ -75,14 +71,11 @@ def get_colors(image_path, color_count=1, exclude_color=None, exclude_range=0.0)
     Examples
     --------
     Find the predominant colors in "./test.jpg"
-    
-    .. code-block:: python
-    
-        from cloudburst import vision as cbv
-        colorlist = cbv.get_colors("./test.jpg", 2)
-        print(colorlist)
+        
+    >>> from cloudburst import vision as cbv
+    >>> colorlist = cbv.get_colors("./test.jpg", 2)
+    >>> print(colorlist)
     """
-    
     if color_count == 1:
         image = Image.open(image_path)
         w, h = image.size

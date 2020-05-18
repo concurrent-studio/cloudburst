@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>vision.face3d &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>vision.face3d</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for vision.face3d</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">cloudburst</span> <span class="k">as</span> <span class="nn">cb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow.compat.v1</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">loadmat</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TF_CPP_MIN_LOG_LEVEL&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+<span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+<span class="c1"># BFM 3D face model</span>
+<span class="k">class</span> <span class="nc">BFM</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bfm_model_path</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="n">bfm_model_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanshape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;meanshape&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idBase</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;idBase&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exBase</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;exBase&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meantex</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;meantex&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texBase</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;texBase&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">point_buf</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;point_buf&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_buf</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;tri&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keypoints</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;keypoints&quot;</span><span class="p">]))</span>
+
+
+<span class="c1"># Analytic 3D face reconstructor</span>
+<span class="k">class</span> <span class="nc">FaceTo3D</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bfm_model_path</span><span class="p">):</span>
+        <span class="n">facemodel</span> <span class="o">=</span> <span class="n">BFM</span><span class="p">(</span><span class="n">bfm_model_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">facemodel</span> <span class="o">=</span> <span class="n">facemodel</span>
+
+    <span class="c1"># analytic 3D face reconstructions with coefficients from R-Net</span>
+    <span class="k">def</span> <span class="nf">Reconstruction_Block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">batchsize</span><span class="p">):</span>
+        <span class="c1"># coeff: [batchsize,257] reconstruction coefficients</span>
+        <span class="n">id_coeff</span><span class="p">,</span> <span class="n">ex_coeff</span><span class="p">,</span> <span class="n">tex_coeff</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">translation</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Split_coeff</span><span class="p">(</span>
+            <span class="n">coeff</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [batchsize,N,3] canonical face shape in BFM space</span>
+        <span class="n">face_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Shape_formation_block</span><span class="p">(</span><span class="n">id_coeff</span><span class="p">,</span> <span class="n">ex_coeff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">facemodel</span><span class="p">)</span>
+
+        <span class="c1"># # [batchsize,N,3] vertex texture (in RGB order)</span>
+        <span class="n">face_texture</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Texture_formation_block</span><span class="p">(</span><span class="n">tex_coeff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">facemodel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_texture</span> <span class="o">=</span> <span class="n">face_texture</span>
+
+        <span class="c1"># [batchsize,3,3] rotation matrix for face shape</span>
+        <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Compute_rotation_matrix</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+
+        <span class="c1"># [batchsize,N,3] vertex normal</span>
+        <span class="n">face_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Compute_norm</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">facemodel</span><span class="p">)</span>
+        <span class="n">norm_r</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">face_norm</span><span class="p">,</span> <span class="n">rotation</span><span class="p">)</span>
+
+        <span class="c1"># do rigid transformation for face shape using predicted rotation and translation</span>
+        <span class="n">face_shape_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Rigid_transform_block</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_shape_t</span> <span class="o">=</span> <span class="n">face_shape_t</span>
+
+        <span class="c1"># [batchsize,N,3] vertex color (in RGB order)</span>
+        <span class="n">face_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Illumination_block</span><span class="p">(</span><span class="n">face_texture</span><span class="p">,</span> <span class="n">norm_r</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_color</span> <span class="o">=</span> <span class="n">face_color</span>
+
+    <span class="k">def</span> <span class="nf">Split_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coeff</span><span class="p">):</span>
+        <span class="n">id_coeff</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">80</span><span class="p">]</span>  <span class="c1"># identity</span>
+        <span class="n">ex_coeff</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="mi">80</span><span class="p">:</span><span class="mi">144</span><span class="p">]</span>  <span class="c1"># expression</span>
+        <span class="n">tex_coeff</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="mi">144</span><span class="p">:</span><span class="mi">224</span><span class="p">]</span>  <span class="c1"># texture</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="mi">224</span><span class="p">:</span><span class="mi">227</span><span class="p">]</span>  <span class="c1"># euler angles for pose</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="mi">227</span><span class="p">:</span><span class="mi">254</span><span class="p">]</span>  <span class="c1"># lighting</span>
+        <span class="n">translation</span> <span class="o">=</span> <span class="n">coeff</span><span class="p">[:,</span> <span class="mi">254</span><span class="p">:</span><span class="mi">257</span><span class="p">]</span>  <span class="c1"># translation</span>
+
+        <span class="k">return</span> <span class="n">id_coeff</span><span class="p">,</span> <span class="n">ex_coeff</span><span class="p">,</span> <span class="n">tex_coeff</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">translation</span><span class="p">,</span> <span class="n">gamma</span>
+
+    <span class="k">def</span> <span class="nf">Shape_formation_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_coeff</span><span class="p">,</span> <span class="n">ex_coeff</span><span class="p">,</span> <span class="n">facemodel</span><span class="p">):</span>
+        <span class="n">face_shape</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,aj-&gt;ai&quot;</span><span class="p">,</span> <span class="n">facemodel</span><span class="o">.</span><span class="n">idBase</span><span class="p">,</span> <span class="n">id_coeff</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,aj-&gt;ai&quot;</span><span class="p">,</span> <span class="n">facemodel</span><span class="o">.</span><span class="n">exBase</span><span class="p">,</span> <span class="n">ex_coeff</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">facemodel</span><span class="o">.</span><span class="n">meanshape</span>
+        <span class="p">)</span>
+        <span class="c1"># reshape face shape to [batchsize,N,3], re-centering the face shape with mean shape</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">face_shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">facemodel</span><span class="o">.</span><span class="n">meanshape</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">Compute_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_shape</span><span class="p">,</span> <span class="n">facemodel</span><span class="p">):</span>
+        <span class="n">face_id</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">facemodel</span><span class="o">.</span><span class="n">face_buf</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+        <span class="c1"># compute normal for each face</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="n">face_id</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="n">face_id</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">v3</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="n">face_id</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">face_norm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_normalize</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span> <span class="o">-</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v2</span> <span class="o">-</span> <span class="n">v3</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">face_shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># compute normal for each vertex using one-ring neighborhood</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_normalize</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+                    <span class="n">face_norm</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">facemodel</span><span class="o">.</span><span class="n">point_buf</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+                <span class="p">),</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">Texture_formation_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tex_coeff</span><span class="p">,</span> <span class="n">facemodel</span><span class="p">):</span>
+        <span class="n">face_texture</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,aj-&gt;ai&quot;</span><span class="p">,</span> <span class="n">facemodel</span><span class="o">.</span><span class="n">texBase</span><span class="p">,</span> <span class="n">tex_coeff</span><span class="p">)</span> <span class="o">+</span> <span class="n">facemodel</span><span class="o">.</span><span class="n">meantex</span>
+        <span class="p">)</span>
+
+        <span class="c1"># reshape face texture to [batchsize,N,3], note that texture is in RGB order</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">face_texture</span><span class="p">,</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">face_texture</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">Compute_rotation_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angles</span><span class="p">):</span>
+        <span class="n">n_data</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">angles</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># compute rotation matrix for X-axis, Y-axis, Z-axis respectively</span>
+        <span class="n">rotation_X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">rotation_Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">rotation_Z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">rotation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rotation_Z</span><span class="p">,</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rotation_Y</span><span class="p">,</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rotation_X</span><span class="p">,</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+            <span class="p">),</span>
+            <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rotation</span>
+
+    <span class="k">def</span> <span class="nf">Illumination_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_texture</span><span class="p">,</span> <span class="n">norm_r</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+        <span class="n">n_data</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">gamma</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">n_point</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">norm_r</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">])</span>
+        <span class="c1"># set initial lighting with an ambient lighting</span>
+        <span class="n">init_lit</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">([</span><span class="mf">0.8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">init_lit</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">])</span>
+
+        <span class="c1"># compute vertex color using SH function approximation</span>
+        <span class="n">a0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">a1</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+        <span class="n">a2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">8.0</span><span class="p">)</span>
+        <span class="n">c1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">c2</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">12</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">a0</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                    <span class="p">[</span><span class="n">n_data</span><span class="p">,</span> <span class="n">n_point</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="o">-</span><span class="n">a1</span> <span class="o">*</span> <span class="n">c1</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">a1</span> <span class="o">*</span> <span class="n">c1</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="o">-</span><span class="n">a1</span> <span class="o">*</span> <span class="n">c1</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">a2</span> <span class="o">*</span> <span class="n">c2</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="o">-</span><span class="n">a2</span> <span class="o">*</span> <span class="n">c2</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span>
+                    <span class="n">a2</span> <span class="o">*</span> <span class="n">c2</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="o">-</span><span class="n">a2</span> <span class="o">*</span> <span class="n">c2</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span>
+                    <span class="n">a2</span>
+                    <span class="o">*</span> <span class="n">c2</span>
+                    <span class="o">*</span> <span class="mf">0.5</span>
+                    <span class="o">*</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norm_r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])),</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [batchsize,N,3] vertex color in RGB order</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">gamma</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">face_texture</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">gamma</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">face_texture</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">gamma</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">face_texture</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">Rigid_transform_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_shape</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">translation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">face_shape</span><span class="p">,</span> <span class="n">rotation</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">translation</span><span class="p">,</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">face_shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="p">)</span>
+
+
+<span class="c1"># resize and crop input images before sending to the R-Net</span>
+<span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">lm3D</span><span class="p">,</span> <span class="n">target_size</span><span class="o">=</span><span class="mf">224.0</span><span class="p">):</span>
+    <span class="n">w0</span><span class="p">,</span> <span class="n">h0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lm</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">h0</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">lm</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">lm3D</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">npts</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">k</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">npts</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">rcond</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">7</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># processing the image</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">w0</span> <span class="o">/</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">102</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">h0</span> <span class="o">/</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">102</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">img_new</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">resample</span><span class="o">=</span><span class="n">Image</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">)</span>
+
+    <span class="n">left</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">target_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="nb">float</span><span class="p">((</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">w0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">102</span> <span class="o">/</span> <span class="n">s</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">target_size</span>
+    <span class="n">up</span> <span class="o">=</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">target_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="nb">float</span><span class="p">((</span><span class="n">h0</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">102</span> <span class="o">/</span> <span class="n">s</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">below</span> <span class="o">=</span> <span class="n">up</span> <span class="o">+</span> <span class="n">target_size</span>
+
+    <span class="n">img_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img_new</span><span class="o">.</span><span class="n">crop</span><span class="p">((</span><span class="n">left</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">below</span><span class="p">)))[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">lm_new</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lm</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">w0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">lm</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">102</span>
+    <span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">target_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">target_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">lm_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lm_new</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">223</span> <span class="o">-</span> <span class="n">lm_new</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">trans_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">w0</span><span class="p">,</span> <span class="n">h0</span><span class="p">,</span> <span class="mf">102.0</span> <span class="o">/</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">return</span> <span class="n">img_new</span><span class="p">,</span> <span class="n">lm_new</span><span class="p">,</span> <span class="n">trans_params</span>
+
+
+<span class="c1"># save 3D face to obj file</span>
+<span class="k">def</span> <span class="nf">save_obj</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)):</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;v </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;f </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">])))</span>
+
+    <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="face_to_3d"><a class="viewcode-back" href="../../generated/vision.face_to_3d.html#vision.face_to_3d">[docs]</a><span class="k">def</span> <span class="nf">face_to_3d</span><span class="p">(</span>
+    <span class="n">input_images</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">bfm_model_path</span><span class="o">=</span><span class="s2">&quot;~/.cloudburst/BFM_model_front.mat&quot;</span><span class="p">,</span>
+    <span class="n">face_reconstruction_model_path</span><span class="o">=</span><span class="s2">&quot;~/.cloudburst/FaceReconModel.pb&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download an image or video from a URL</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_images : str</span>
+<span class="sd">        path(s) to images to tranform</span>
+<span class="sd">    output_path : str</span>
+<span class="sd">        directory to write files to</span>
+<span class="sd">    bfm_model_path : str</span>
+<span class="sd">        path to model BFM model used for transform, can be found at https://concurrent.studio/face-to-3d</span>
+<span class="sd">    face_reconstruction_model_path : str</span>
+<span class="sd">        path to model face reconstruction model used for transform, can be found at https://concurrent.studio/face-to-3d</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Convert an image of a face to a 3D wavefron object</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; # Assumes models are downloaded and stored in ~/.cloudburst</span>
+<span class="sd">    &gt;&gt;&gt; cbv.face_to_3d(&quot;./some_face.jpg&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Expand user path on models</span>
+    <span class="n">bfm_model_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">bfm_model_path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="n">face_reconstruction_model_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">face_reconstruction_model_path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bfm_model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">face_reconstruction_model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31mTo run this script, you must pass it the path to valid pre-trained models</span><span class="se">\n</span><span class="s2">These can be dowloaded at https://concurrent.studio/face-to-3d</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+        <span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bfm_model_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">bfm_model_path</span><span class="p">)</span>
+        <span class="n">face_reconstruction_model_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">face_reconstruction_model_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_images</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">input_images</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_images</span><span class="p">]</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">Lm3D</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">this_folder</span><span class="si">}</span><span class="s2">/models/similarity_Lm3D_all.mat&quot;</span><span class="p">)[</span><span class="s2">&quot;lm&quot;</span><span class="p">]</span>
+    <span class="n">lm_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">31</span><span class="p">,</span> <span class="mi">37</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">55</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">lm3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">Lm3D</span><span class="p">[</span><span class="n">lm_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Lm3D</span><span class="p">[</span><span class="n">lm_idx</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]],</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Lm3D</span><span class="p">[</span><span class="n">lm_idx</span><span class="p">[[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">Lm3D</span><span class="p">[</span><span class="n">lm_idx</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="p">:],</span>
+            <span class="n">Lm3D</span><span class="p">[</span><span class="n">lm_idx</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="p">:],</span>
+        <span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">:]</span>
+
+    <span class="c1"># build reconstruction model</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">()</span> <span class="k">as</span> <span class="n">graph</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;/cpu:0&quot;</span><span class="p">):</span>
+        <span class="n">FaceReconstructor</span> <span class="o">=</span> <span class="n">FaceTo3D</span><span class="p">(</span><span class="n">bfm_model_path</span><span class="p">)</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input_imgs&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
+        <span class="p">)</span>
+        <span class="c1"># images = tf.Variable(name=&quot;input_imgs&quot;, tf.ones(shape=[1, 224, 224, 3]), dtype=tf.float32)</span>
+
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">face_reconstruction_model_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">graph_def</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">GraphDef</span><span class="p">()</span>
+            <span class="n">graph_def</span><span class="o">.</span><span class="n">ParseFromString</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span>
+            <span class="n">graph_def</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;resnet&quot;</span><span class="p">,</span> <span class="n">input_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_imgs:0&quot;</span><span class="p">:</span> <span class="n">images</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># output coefficients of R-Net (dim = 257)</span>
+        <span class="n">coeff</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="s2">&quot;resnet/coeff:0&quot;</span><span class="p">)</span>
+
+        <span class="c1"># reconstructing faces</span>
+        <span class="n">FaceReconstructor</span><span class="o">.</span><span class="n">Reconstruction_Block</span><span class="p">(</span><span class="n">coeff</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">face_shape</span> <span class="o">=</span> <span class="n">FaceReconstructor</span><span class="o">.</span><span class="n">face_shape_t</span>  <span class="c1"># need this</span>
+        <span class="n">face_texture</span> <span class="o">=</span> <span class="n">FaceReconstructor</span><span class="o">.</span><span class="n">face_texture</span>
+        <span class="n">face_color</span> <span class="o">=</span> <span class="n">FaceReconstructor</span><span class="o">.</span><span class="n">face_color</span>  <span class="c1"># need this</span>
+        <span class="n">tri</span> <span class="o">=</span> <span class="n">FaceReconstructor</span><span class="o">.</span><span class="n">facemodel</span><span class="o">.</span><span class="n">face_buf</span>  <span class="c1"># need this</span>
+
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">input_images</span><span class="p">:</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># load images and corresponding 5 facial landmarks</span>
+                    <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                    <span class="n">lm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.txt&quot;</span><span class="p">))</span>
+
+                    <span class="c1"># preprocess input image</span>
+                    <span class="n">input_img</span><span class="p">,</span> <span class="n">lm_new</span><span class="p">,</span> <span class="n">transform_params</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">lm3d</span><span class="p">)</span>
+
+                    <span class="p">(</span><span class="n">coeff_</span><span class="p">,</span> <span class="n">face_shape_</span><span class="p">,</span> <span class="n">face_texture_</span><span class="p">,</span> <span class="n">face_color_</span><span class="p">,</span> <span class="n">tri_</span><span class="p">)</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">face_shape</span><span class="p">,</span> <span class="n">face_texture</span><span class="p">,</span> <span class="n">face_color</span><span class="p">,</span> <span class="n">tri</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">images</span><span class="p">:</span> <span class="n">input_img</span><span class="p">},</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># save output file</span>
+                    <span class="n">save_obj</span><span class="p">(</span>
+                        <span class="n">output_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.obj&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">face_shape_</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                        <span class="n">tri_</span><span class="p">,</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">face_color_</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

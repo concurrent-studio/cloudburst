@@ -25,12 +25,9 @@ def draw_points_on_image(image, point_list, radius=1, color=(0, 0, 255)):
     --------
     Calculate facial landmarks of an image and draw them on the imate
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-
-        landmarks = cbv.get_landmarks("bella-hadid.jpg")
-        cbv.draw_points_on_image("bella-hadid.jpg", landmarks)
+    >>> from cloudburst import vision as cbv
+    >>> landmarks = cbv.get_landmarks("bella-hadid.jpg")
+    >>> cbv.draw_points_on_image("bella-hadid.jpg", landmarks)
     """
     draw = ImageDraw.Draw(image)
 
@@ -61,12 +58,9 @@ def draw_rect_on_image(image, xy, radius=1, color=(255, 0, 0)):
     --------
     Calculate facial landmarks of an image and draw them on the imate
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-
-        landmarks = cbv.get_landmarks("bella-hadid.jpg")
-        cbv.draw_points_on_image("bella-hadid.jpg", landmarks)
+    >>> from cloudburst import vision as cbv
+    >>> landmarks = cbv.get_landmarks("bella-hadid.jpg")
+    >>> cbv.draw_points_on_image("bella-hadid.jpg", landmarks)
     """
     draw = ImageDraw.Draw(image)
     draw.rectangle(xy, fill=None, outline=color, width=1)
@@ -97,13 +91,10 @@ def create_collage(
     --------
     Create collage of dimensions (1920, 1080) of images from './images' directory
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-        import cloudburst as cb
-
-        image_paths = cb.query("test_dir", "images")
-        cbv.create_collage(1920, 1080, 10, image_paths)
+    >>> from cloudburst import vision as cbv
+    >>> import cloudburst as cb
+    >>> image_paths = cb.query("test_dir", "images")
+    >>> cbv.create_collage(1920, 1080, 10, image_paths)
     """
     image_count = len(image_list)
 

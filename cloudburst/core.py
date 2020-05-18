@@ -19,7 +19,6 @@ A variety of general, reusable functions for cloudburst
     quad_centroid
     point_in_rect
 """
-
 import json
 import multiprocessing
 from glob import glob
@@ -33,6 +32,7 @@ __all__ = [
     "write_list_to_file",
     "get_list_from_file",
     "write_dict_to_file",
+    "get_dict_from_file",
     "mkdir",
     "line_coeff_from_segment",
     "tri_centroid",
@@ -58,8 +58,8 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
     progress_bar : boolean
         display progress bar to show status
 
-    Return
-    ------
+    Returns
+    -------
     results : list
         list of results returned from function
 
@@ -67,22 +67,16 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
     --------
     Find all images ending in ".jpg" in "./images" folder
     
-    .. code-block:: python
-
-       import cloudburst as cb
-
-        def is_even(number):
-            if number%2 == 0:
-                return True
-            else:
-                return False
-
-        numbers = [0, 5, 12, 57, 8654]      
-        result = cb.concurrent(is_even, numbers)
-        print(result)
+    >>> import cloudburst as cb
+    >>> def is_even(number):
+    >>>     if number%2 == 0:
+    >>>         return True
+    >>>     else:
+    >>>         return False
+    >>> numbers = [0, 5, 12, 57, 8654]      
+    >>> result = cb.concurrent(is_even, numbers)
+    >>> print(result)
     """
-    # https://docs.python.org/3/library/concurrent.futures.html
-
     # Get CPU count to use for max workers
     max_workers_count = multiprocessing.cpu_count() - 2
 
@@ -140,8 +134,8 @@ def query(folder, filetypes):
     filetypes : str
         extension to locate files by ("images", "videos", "audio", or custom entries)
 
-    Return
-    ------
+    Returns
+    -------
     filepaths : list
         a list of filepaths to query matches
 
@@ -149,13 +143,10 @@ def query(folder, filetypes):
     --------
     Find all images ending in ".jpg" in "./images" folder
     
-    .. code-block:: python
-
-        import cloudburst as cb
-        matches = cb.query("images", "jpg")
-        print(matches)
+    >>> import cloudburst as cb
+    >>> matches = cb.query("images", "jpg")
+    >>> print(matches)
     """
-
     matches = []
 
     # pre allocated lists of types
@@ -218,12 +209,9 @@ def write_list_to_file(filename, input_list):
     --------
     Find all images ending in ".jpg" in "./images" folder
     
-    .. code-block:: python
-
-        import cloudburst as cb
-
-        some_numbers = [i for i in range(50)]
-        cb.write_list_to_file("numbers.txt", some_numbers)
+    >>> import cloudburst as cb
+    >>> some_numbers = [i for i in range(50)]
+    >>> cb.write_list_to_file("numbers.txt", some_numbers)
     """
 
     with open(filename, "w") as f:
@@ -243,15 +231,11 @@ def get_list_from_file(filename):
     --------
     Find all images ending in ".jpg" in "./images" folder
     
-    .. code-block:: python
-
-        import cloudburst as cb
-
-        some_numbers = [i for i in range(50)]
-        cb.write_list_to_file("numbers.txt", some_numbers)
-        print(cb.get_list_from_file("numbers.txt"))
+    >>> import cloudburst as cb
+    >>> some_numbers = [i for i in range(50)]
+    >>> cb.write_list_to_file("numbers.txt", some_numbers)
+    >>> print(cb.get_list_from_file("numbers.txt"))
     """
-
     return [line.rstrip("\n") for line in open(filename)]
 
 
@@ -270,39 +254,35 @@ def write_dict_to_file(filename, input_dict, minimize=False):
     --------
     Find all images ending in ".jpg" in "./images" folder
     
-    .. code-block:: python
-
-        import cloudburst as cb
-
-        tesla_cars = {
-            "roadster": {
-                "year": 2008,
-                "cost_usd": 98950
-            },
-            "model s": {
-                "year": 2012,
-                "cost_usd": 79990
-            },
-            "model x": {
-                "year": 2016,
-                "cost_usd": 84900
-            },
-            "model 3": {
-                "year": 2017,
-                "cost_usd": 39990
-            },
-            "model y": {
-                "year": 2020,
-                "cost_usd": 52990
-            },
-            "cybertruck": {
-                "year": 2021,
-                "cost_usd": 39900
-            }
-        }
-        cb.write_dict_to_file("tesla.json", tesla_cars)
+    >>> import cloudburst as cb
+    >>> tesla_cars = {
+    >>>     "roadster": {
+    >>>         "year": 2008,
+    >>>         "cost_usd": 98950
+    >>>     },
+    >>>     "model s": {
+    >>>         "year": 2012,
+    >>>         "cost_usd": 79990
+    >>>     },
+    >>>     "model x": {
+    >>>         "year": 2016,
+    >>>         "cost_usd": 84900
+    >>>     },
+    >>>     "model 3": {
+    >>>         "year": 2017,
+    >>>         "cost_usd": 39990
+    >>>     },
+    >>>     "model y": {
+    >>>         "year": 2020,
+    >>>         "cost_usd": 52990
+    >>>     },
+    >>>     "cybertruck": {
+    >>>         "year": 2021,
+    >>>         "cost_usd": 39900
+    >>>     }
+    >>> }
+    >>> cb.write_dict_to_file("tesla.json", tesla_cars)
     """
-
     with open(filename, "w") as f:
         if minimize:
             f.write(json.dumps(input_dict, separators=(",", ":")))
@@ -326,22 +306,18 @@ def mkdir(dirname):
     dirname : str
         name/path of the directory to write
 
-    Return
-    ------
+    Returns
+    -------
     path : path
         path to created directory
 
     Examples
     --------
     Find all images ending in ".jpg" in "./images" folder
-    
-    .. code-block:: python
-    
-        import cloudburst as cb
-
-        cb.mkdir("test_directory")
+        
+    >>> import cloudburst as cb
+    >>> cb.mkdir("test_directory")
     """
-
     dirpath = Path.cwd().joinpath(dirname)
     if not dirpath.exists():
         dirpath.mkdir()
@@ -359,8 +335,8 @@ def line_coeff_from_segment(point_a, point_b):
     point_b : tuple
         coordinates of the second point
 
-    Return
-    ------
+    Returns
+    -------
     m : float
         the line's slope
 
@@ -371,11 +347,9 @@ def line_coeff_from_segment(point_a, point_b):
     --------
     Find the slope and y-intercept of a line defined by points (8, 3) and (-1, 10)
 
-    .. code-block:: python
-
-        import cloudburst as cb
-        (m, b) = cb.line_coeff_from_segment((8, 3), (-1, 10))
-        print("line: y={}x+{}".format(m, b))
+    >>> import cloudburst as cb
+    >>> (m, b) = cb.line_coeff_from_segment((8, 3), (-1, 10))
+    >>> print("line: y={}x+{}".format(m, b))
     """
     # slope of line
     m = (point_b[1] - point_a[1]) / (point_b[0] - point_a[0])
@@ -399,8 +373,8 @@ def tri_centroid(vertex_a, vertex_b, vertex_c):
     vertex_c : tuple
         coordinates of the third vertex
 
-    Return
-    ------
+    Returns
+    -------
     centroid : tuple
         the triangle's centroid
 
@@ -408,11 +382,9 @@ def tri_centroid(vertex_a, vertex_b, vertex_c):
     --------
     Find the centroid of the traingle formed by points (2, 4), (6, 1), (8, 10)
 
-    .. code-block:: python
-
-        import cloudburst as cb
-        centroid = cb.tri_centroid((2, 4), (6, 1), (8, 10))
-        print(centroid)
+    >>> import cloudburst as cb
+    >>> centroid = cb.tri_centroid((2, 4), (6, 1), (8, 10))
+    >>> print(centroid)
     """
     # average x coords
     centroid_x = (vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3
@@ -439,8 +411,8 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     vertex_d : tuple
         coordinates of the fourth vertex
 
-    Return
-    ------
+    Returns
+    -------
     centroid : tuple
         the quadrilateral's centroid
 
@@ -448,11 +420,9 @@ def quad_centroid(vertex_a, vertex_b, vertex_c, vertex_d, integer=False):
     --------
     Find the centroid of the quadrilateral formed by vertices (1, 0), (2, 8), (9, -1), (10, 2)
 
-    .. code-block:: python    
-
-        import cloudburst as cb
-        centroid = cb.quad_centroid((1, 0), (2, 8), (9, -1), (10, 2))
-        print(centroid)
+    >>> import cloudburst as cb
+    >>> centroid = cb.quad_centroid((1, 0), (2, 8), (9, -1), (10, 2))
+    >>> print(centroid)
     """
     # Break quadrilateral into component triangles
     triangles = []
@@ -506,21 +476,18 @@ def point_in_rect(rect, point):
     point : tuple
         coordinates of point to check 
 
-    Return
-    ------
+    Returns
+    -------
     within_rectangle : boolean
         whether or not the point is in the rectangle
 
     Examples
     --------
     Check whether or not a point exists within a rectangle 
-    
-    .. code-block:: python
-    
-        import cloudburst as cb
-
-        rect = [(1, 4), (1, 8), (2, 8), (2, 4)]
-        print(cb.point_in_rect(rect, (1,1)))
+        
+    >>> import cloudburst as cb
+    >>> rect = [(1, 4), (1, 8), (2, 8), (2, 4)]
+    >>> print(cb.point_in_rect(rect, (1,1)))
     """
     if point[0] < rect[0]:
         return False

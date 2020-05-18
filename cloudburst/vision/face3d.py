@@ -314,14 +314,10 @@ def face_to_3d(
     --------
     Convert an image of a face to a 3D wavefron object
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-
-        # Assumes models are downloaded and stored in ~/.cloudburst
-        cbv.FaceTo3D("./some_face.jpg", bfm_model_path=bfm_model_path, face_reconstruction_model_path=face_reconstruction_model_path)
+    >>> from cloudburst import vision as cbv
+    >>> # Assumes models are downloaded and stored in ~/.cloudburst
+    >>> cbv.face_to_3d("./some_face.jpg")
     """
-
     # Expand user path on models
     bfm_model_path = Path(bfm_model_path).expanduser()
     face_reconstruction_model_path = Path(face_reconstruction_model_path).expanduser()

@@ -246,6 +246,7 @@ def get_faces(
 
     # Ensure list of image paths passed
     image_paths = [image_path] if isinstance(image_path, str) else image_path
+    # Structure list for concurrency
     faces_to_threadpool = []
     for image_path in image_paths:
         faces_to_threadpool.append(
@@ -410,7 +411,7 @@ def get_eyes(
     return results
 
 
-def get_landmarks(image_path, model="68", mode="save"):
+def get_landmarks(image_path, model=68, mode="save"):
     """Get coordinates of 68 facial landmarks from a given image
 
     Parameters
@@ -422,23 +423,19 @@ def get_landmarks(image_path, model="68", mode="save"):
     --------
     Get and crop the faces of all images in './images' folder
 
-    .. code-block:: python
-
-        from cloudburst import vision as cbv
-        import cloudburst as cb
-
-        paths = cb.query('images', 'jpg')
-        for image_path in paths:
-            cbv.get_landmarks(image_path)
+    >>> import cloudburst as cb
+    >>> from cloudburst import vision as cbv
+    >>> paths = cb.query('images', 'jpg')
+    >>> for image_path in paths:
+    >>>     cbv.get_landmarks(image_path)
     """
-
     # Configure detector
-    if model == "68":
+    if model == 68:
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor(
             face_recognition_models.pose_predictor_model_location()
         )
-    elif model == "5":
+    elif model == 5:
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor(
             face_recognition_models.pose_predictor_five_point_model_location()
@@ -468,7 +465,7 @@ def get_landmarks(image_path, model="68", mode="save"):
 
 
 ########################### AVERAGE FACES ###########################
-"""THIS NEEDS TO BE CLEANED UP BIG TIME"""
+# Clean this up
 # Read points from text files in directory
 def build_point_matrix(dirname):
     points_matrix = []
@@ -624,13 +621,9 @@ def average_faces(directory_path, output_filepath, output_dimensions=(600, 600))
     --------
     Average all faces in './faces' folder
 
-    .. code-block:: python
-    
-        from cloudburst import vision as cbv
-
-        cbv.average_faces("./test_dir", "average.jpg")
+    >>> from cloudburst import vision as cbv
+    >>> cbv.average_faces("./test_dir", "average.jpg")
     """
-
     w, h = output_dimensions
 
     # Generate point and image matrices

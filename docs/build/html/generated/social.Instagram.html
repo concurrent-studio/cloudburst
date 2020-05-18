@@ -1,318 +1,370 @@
 
-<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>social.Instagram &#8212; cloudburst 0.1.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>social.Instagram &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="social.download_instagram_by_shortcode" href="social.download_instagram_by_shortcode.html" />
-    <link rel="prev" title="Social" href="../social.html" />
+    <link rel="prev" title="Social" href="../social.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
-          <div class="body" role="main">
+          
+            <a href="../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../social.html">Social</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../social.html#instagram">Instagram</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">social.Instagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="social.download_instagram_by_shortcode.html">social.download_instagram_by_shortcode</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../social.html#vsco">VSCO</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../social.html">Social</a> &raquo;</li>
+        
+      <li>social.Instagram</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/social.Instagram.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="social-instagram">
 <h1>social.Instagram<a class="headerlink" href="#social-instagram" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="social.Instagram">
-<em class="property">class </em><code class="sig-prename descclassname">social.</code><code class="sig-name descname">Instagram</code><span class="sig-paren">(</span><em class="sig-param">username</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/social/instagram.html#Instagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#social.Instagram" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">social.</code><code class="descname">Instagram</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/social/instagram.html#Instagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#social.Instagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scrape the data of an Instagram User</p>
 <dl class="attribute">
 <dt id="social.Instagram.username">
-<code class="sig-name descname">username</code><a class="headerlink" href="#social.Instagram.username" title="Permalink to this definition">¶</a></dt>
-<dd><p>User’s username</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">username</code><a class="headerlink" href="#social.Instagram.username" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – User’s username</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.id">
-<code class="sig-name descname">id</code><a class="headerlink" href="#social.Instagram.id" title="Permalink to this definition">¶</a></dt>
-<dd><p>User’s unique ID</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">id</code><a class="headerlink" href="#social.Instagram.id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – User’s unique ID</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.name">
-<code class="sig-name descname">name</code><a class="headerlink" href="#social.Instagram.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>User’s full name</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">name</code><a class="headerlink" href="#social.Instagram.name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – User’s full name</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.biography">
-<code class="sig-name descname">biography</code><a class="headerlink" href="#social.Instagram.biography" title="Permalink to this definition">¶</a></dt>
-<dd><p>User’s biography</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">biography</code><a class="headerlink" href="#social.Instagram.biography" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – User’s biography</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.url">
-<code class="sig-name descname">url</code><a class="headerlink" href="#social.Instagram.url" title="Permalink to this definition">¶</a></dt>
-<dd><p>Linked site under user’s biography</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">url</code><a class="headerlink" href="#social.Instagram.url" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Linked site under user’s biography</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.followers">
-<code class="sig-name descname">followers</code><a class="headerlink" href="#social.Instagram.followers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of accounts following the user</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
+<code class="descname">followers</code><a class="headerlink" href="#social.Instagram.followers" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Number of accounts following the user</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.following">
-<code class="sig-name descname">following</code><a class="headerlink" href="#social.Instagram.following" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of accounts user is following</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
+<code class="descname">following</code><a class="headerlink" href="#social.Instagram.following" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Number of accounts user is following</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.business_category_name">
-<code class="sig-name descname">business_category_name</code><a class="headerlink" href="#social.Instagram.business_category_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Name of business category</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">business_category_name</code><a class="headerlink" href="#social.Instagram.business_category_name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Name of business category</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.category_id">
-<code class="sig-name descname">category_id</code><a class="headerlink" href="#social.Instagram.category_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>ID of business category</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">category_id</code><a class="headerlink" href="#social.Instagram.category_id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – ID of business category</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.overall_category_name">
-<code class="sig-name descname">overall_category_name</code><a class="headerlink" href="#social.Instagram.overall_category_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Name of overall category</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">overall_category_name</code><a class="headerlink" href="#social.Instagram.overall_category_name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Name of overall category</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.is_private">
-<code class="sig-name descname">is_private</code><a class="headerlink" href="#social.Instagram.is_private" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the account private</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
+<code class="descname">is_private</code><a class="headerlink" href="#social.Instagram.is_private" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – Is the account private</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.is_verified">
-<code class="sig-name descname">is_verified</code><a class="headerlink" href="#social.Instagram.is_verified" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the account verified</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
+<code class="descname">is_verified</code><a class="headerlink" href="#social.Instagram.is_verified" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – Is the account verified</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.profile_pic_url_hd">
-<code class="sig-name descname">profile_pic_url_hd</code><a class="headerlink" href="#social.Instagram.profile_pic_url_hd" title="Permalink to this definition">¶</a></dt>
-<dd><p>URL to high defintion profile picture</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">profile_pic_url_hd</code><a class="headerlink" href="#social.Instagram.profile_pic_url_hd" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – URL to high defintion profile picture</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.connected_fb_page">
-<code class="sig-name descname">connected_fb_page</code><a class="headerlink" href="#social.Instagram.connected_fb_page" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connected Facebook page</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<code class="descname">connected_fb_page</code><a class="headerlink" href="#social.Instagram.connected_fb_page" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Connected Facebook page</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.media_count">
-<code class="sig-name descname">media_count</code><a class="headerlink" href="#social.Instagram.media_count" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of posts by user</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
+<code class="descname">media_count</code><a class="headerlink" href="#social.Instagram.media_count" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Number of posts by user</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.timestamp">
-<code class="sig-name descname">timestamp</code><a class="headerlink" href="#social.Instagram.timestamp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Current UNIX epoch timestamp</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
+<code class="descname">timestamp</code><a class="headerlink" href="#social.Instagram.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Current UNIX epoch timestamp</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="social.Instagram.shortcode_list">
-<code class="sig-name descname">shortcode_list</code><a class="headerlink" href="#social.Instagram.shortcode_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of all shortcodes for a user</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
+<code class="descname">shortcode_list</code><a class="headerlink" href="#social.Instagram.shortcode_list" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> – List of all shortcodes for a user</p>
 </dd></dl>
 
 <p class="rubric">Examples</p>
-<p>Contruct new object for &#64;pharrell, print bio, download profile image, download all media and data</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">social</span> <span class="k">as</span> <span class="n">cbs</span>
-
-<span class="n">ig</span> <span class="o">=</span> <span class="n">cbs</span><span class="o">.</span><span class="n">Instagram</span><span class="p">(</span><span class="s2">&quot;denimtears&quot;</span><span class="p">)</span> <span class="c1"># Build pseudo-database for user</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">download_profile_picture</span><span class="p">()</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">get_previews</span><span class="p">()</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">download_stories</span><span class="p">()</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">download_highlights</span><span class="p">()</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">download_thumbnails</span><span class="p">()</span>
-<span class="n">ig</span><span class="o">.</span><span class="n">download_posts</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First post: https://www.instagram.com/p/</span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_post_by_number</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Querying for keyword &quot;</span><span class="n">acyde</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">shortcode</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ig</span><span class="o">.</span><span class="n">search_captions_by_keyword</span><span class="p">(</span><span class="s2">&quot;acyde&quot;</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    https://www.instagram.com/p/</span><span class="si">{</span><span class="n">shortcode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top tagged user: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_tagged_users</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top tagged users in captions: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_tagged_users_in_captions</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top hashtag: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_hashtags</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">top_liked_post</span> <span class="o">=</span> <span class="n">ig</span><span class="o">.</span><span class="n">get_posts_by_like_count</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Most liked post: https://www.instagram.com/p/</span><span class="si">{</span><span class="n">top_liked_post</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">top_liked_post</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> likes)&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total lifetime likes: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_lifetime_like_count</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<p>Contruct new object for &#64;denimtears, gather media, do some analytics</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">social</span> <span class="k">as</span> <span class="n">cbs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span> <span class="o">=</span> <span class="n">cbs</span><span class="o">.</span><span class="n">Instagram</span><span class="p">(</span><span class="s2">&quot;denimtears&quot;</span><span class="p">)</span> <span class="c1"># Build pseudo-database for user</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">download_profile_picture</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">get_previews</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">download_stories</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">download_highlights</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">download_thumbnails</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ig</span><span class="o">.</span><span class="n">download_posts</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First post: https://www.instagram.com/p/</span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_post_by_number</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Querying for keyword &quot;</span><span class="n">acyde</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">shortcode</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ig</span><span class="o">.</span><span class="n">search_captions_by_keyword</span><span class="p">(</span><span class="s2">&quot;acyde&quot;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    https://www.instagram.com/p/</span><span class="si">{</span><span class="n">shortcode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top tagged user: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_tagged_users</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top tagged users in captions: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_tagged_users_in_captions</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top hashtag: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_hashtags</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">top_liked_post</span> <span class="o">=</span> <span class="n">ig</span><span class="o">.</span><span class="n">get_posts_by_like_count</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Most liked post: https://www.instagram.com/p/</span><span class="si">{</span><span class="n">top_liked_post</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">top_liked_post</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> likes)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total lifetime likes: </span><span class="si">{</span><span class="n">ig</span><span class="o">.</span><span class="n">get_lifetime_like_count</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">
 <dt id="social.Instagram.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">username</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/social/instagram.html#Instagram.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#social.Instagram.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>self</em>, <em>username</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/social/instagram.html#Instagram.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#social.Instagram.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor method</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – Any Instagram user’s username to query</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> (<em>str</em>) – Any Instagram user’s username to query</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <p class="rubric">Methods</p>
-<table class="longtable docutils align-default">
+<table border="1" class="longtable docutils">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#social.Instagram.__init__" title="social.Instagram.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(self, username)</p></td>
-<td><p>Constructor method</p></td>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#social.Instagram.__init__" title="social.Instagram.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(self,&nbsp;username)</td>
+<td>Constructor method</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_highlights</span></code>(self[, output_dir, …])</p></td>
-<td><p>Download all highlights from an Instagram user in their highest quality</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_highlights</span></code>(self[,&nbsp;output_dir,&nbsp;…])</td>
+<td>Download all highlights from an Instagram user in their highest quality</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_posts</span></code>(self[, output_dir, progress_bar])</p></td>
-<td><p>Download all posts from an Instagram user in their highest quality</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_posts</span></code>(self[,&nbsp;output_dir,&nbsp;progress_bar])</td>
+<td>Download all posts from an Instagram user in their highest quality</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_profile_picture</span></code>(self)</p></td>
-<td><p>Download an Instagram user’s profile picure in its highest quality</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_profile_picture</span></code>(self)</td>
+<td>Download an Instagram user’s profile picure in its highest quality</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_stories</span></code>(self[, output_dir, …])</p></td>
-<td><p>Download all stories from an Instagram user in their highest quality</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_stories</span></code>(self[,&nbsp;output_dir,&nbsp;…])</td>
+<td>Download all stories from an Instagram user in their highest quality</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_thumbnails</span></code>(self[, output_dir, …])</p></td>
-<td><p>Download all posts from an Instagram user in their highest quality</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_thumbnails</span></code>(self[,&nbsp;output_dir,&nbsp;…])</td>
+<td>Download all posts from an Instagram user in their highest quality</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hashtags</span></code>(self)</p></td>
-<td><p>Get all hashtags (and the posts that use them) from a user, sorted by frequency</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hashtags</span></code>(self)</td>
+<td>Get all hashtags (and the posts that use them) from a user, sorted by frequency</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lifetime_like_count</span></code>(self)</p></td>
-<td><p>Total number of likes a user has received</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lifetime_like_count</span></code>(self)</td>
+<td>Total number of likes a user has received</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_post_by_number</span></code>(self, number)</p></td>
-<td><p>Get a post shortcode by number</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_post_by_number</span></code>(self,&nbsp;number)</td>
+<td>Get a post shortcode by number</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_posts_by_like_count</span></code>(self)</p></td>
-<td><p>Sort posts by like count</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_posts_by_like_count</span></code>(self)</td>
+<td>Sort posts by like count</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_previews</span></code>(self[, mode, output_dir])</p></td>
-<td><p>Get all media previews for a user</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_previews</span></code>(self[,&nbsp;mode,&nbsp;output_dir])</td>
+<td>Get all media previews for a user</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tagged_users</span></code>(self)</p></td>
-<td><p>Get list of all users tagged in post</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tagged_users</span></code>(self)</td>
+<td>Get list of all users tagged in post</td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tagged_users_in_captions</span></code>(self)</p></td>
-<td><p>Get list of all users tagged in captions</p></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tagged_users_in_captions</span></code>(self)</td>
+<td>Get list of all users tagged in captions</td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">login</span></code>(self)</p></td>
-<td><p>Log into Instagram</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">logout</span></code>(self)</p></td>
-<td><p>Log out of Instagram</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">search_captions_by_keyword</span></code>(self, keyword)</p></td>
-<td><p>Find all captions containing a queried keyword</p></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">search_captions_by_keyword</span></code>(self,&nbsp;keyword)</td>
+<td>Find all captions containing a queried keyword</td>
 </tr>
 </tbody>
 </table>
@@ -321,88 +373,52 @@
 </div>
 
 
+           </div>
+           
           </div>
-          
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">cloudburst</a></h1>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
-</ul>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../social.html">Social</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../social.html#instagram">Instagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../social.html#vsco">VSCO</a></li>
-</ul>
-</li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../social_analytics.html">Social Analytics</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="../social.html">Social</a><ul>
-      <li>Previous: <a href="../social.html" title="previous chapter">Social</a></li>
-      <li>Next: <a href="social.download_instagram_by_shortcode.html" title="next chapter">social.download_instagram_by_shortcode</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="social.download_instagram_by_shortcode.html" class="btn btn-neutral float-right" title="social.download_instagram_by_shortcode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../social.html" class="btn btn-neutral float-left" title="Social" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
-</div>
-<script>$('#searchbox').show(0);</script>
+  
 
+  <hr/>
 
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
 
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
-
-
-
+</footer>
 
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2020, CONCURRENT STUDIO™.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
-      |
-      <a href="../_sources/generated/social.Instagram.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
 
-    
+    </section>
 
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
     
-  </body>
+   
+
+</body>
 </html>

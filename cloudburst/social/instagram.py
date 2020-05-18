@@ -25,7 +25,7 @@ __all__ = ["Instagram", "download_instagram_by_shortcode"]
 
 
 def download_instagram_by_shortcode(shortcode):
-    """Download an instagram post from its shortcode
+    """Download a post from its shortcode
 
     Parameters
     ----------
@@ -36,13 +36,9 @@ def download_instagram_by_shortcode(shortcode):
     --------
     Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
 
-    .. code-block:: python
-
-        from cloudburst import social as cbs
-
-        cbs.download_instagram_by_shortcode("B-X0DDrj30s")
+    >>> from cloudburst import social as cbs
+    >>> cbs.download_instagram_by_shortcode("B-X0DDrj30s")
     """
-
     def __download_media(shortcode, node):
         """ Download a post's media """
         filename = "{}_{}".format(shortcode, node["id"])
@@ -121,29 +117,26 @@ class Instagram:
 
     Examples
     --------
-    Contruct new object for @pharrell, print bio, download profile image, download all media and data
-
-    .. code-block:: python
+    Contruct new object for @denimtears, gather media, do some analytics
     
-        from cloudburst import social as cbs
-
-        ig = cbs.Instagram("denimtears") # Build pseudo-database for user
-        ig.download_profile_picture()
-        ig.get_previews()
-        ig.download_stories()
-        ig.download_highlights()
-        ig.download_thumbnails()
-        ig.download_posts()
-        print(f"First post: https://www.instagram.com/p/{ig.get_post_by_number(-1)}")
-        print("Querying for keyword \"acyde\":")
-        for shortcode, _ in ig.search_captions_by_keyword("acyde"):
-            print(f"\thttps://www.instagram.com/p/{shortcode}")
-        print(f"Top tagged user: {ig.get_tagged_users()[0][0]}")
-        print(f"Top tagged users in captions: {ig.get_tagged_users_in_captions()[0][0]}")
-        print(f"Top hashtag: {ig.get_hashtags()[0][0]}")
-        top_liked_post = ig.get_posts_by_like_count()[0]
-        print(f"Most liked post: https://www.instagram.com/p/{top_liked_post[0]} ({top_liked_post[1]} likes)")
-        print(f"Total lifetime likes: {ig.get_lifetime_like_count()}")
+    >>> from cloudburst import social as cbs
+    >>> ig = cbs.Instagram("denimtears") # Build pseudo-database for user
+    >>> ig.download_profile_picture()
+    >>> ig.get_previews()
+    >>> ig.download_stories()
+    >>> ig.download_highlights()
+    >>> ig.download_thumbnails()
+    >>> ig.download_posts()
+    >>> print(f"First post: https://www.instagram.com/p/{ig.get_post_by_number(-1)}")
+    >>> print("Querying for keyword \"acyde\":")
+    >>> for shortcode, _ in ig.search_captions_by_keyword("acyde"):
+    >>>     print(f"\thttps://www.instagram.com/p/{shortcode}")
+    >>> print(f"Top tagged user: {ig.get_tagged_users()[0][0]}")
+    >>> print(f"Top tagged users in captions: {ig.get_tagged_users_in_captions()[0][0]}")
+    >>> print(f"Top hashtag: {ig.get_hashtags()[0][0]}")
+    >>> top_liked_post = ig.get_posts_by_like_count()[0]
+    >>> print(f"Most liked post: https://www.instagram.com/p/{top_liked_post[0]} ({top_liked_post[1]} likes)")
+    >>> print(f"Total lifetime likes: {ig.get_lifetime_like_count()}")
     """
 
     def __init__(self, username):
@@ -154,7 +147,6 @@ class Instagram:
         username : str
             Any Instagram user's username to query
         """
-
         # Create ~/.cloudubrst directory if necessary
         # Used to store session
         mkdir(Path.home().joinpath(".cloudburst"))
@@ -368,6 +360,7 @@ class Instagram:
             write_dict_to_file(
                 "{}.json".format(self.username), self.json, minimize=True
             )
+        self.__cache_session()
 
     ########################
     # LOGIN/LOGOUT METHODS #
@@ -473,7 +466,6 @@ class Instagram:
         tuple : tuple
             Tuple or url and filename to deconstruct
         """
-
         # Check to ensure content isn't gone from Facebook's CDN
         if requests.get(tuple[0]).text != "Gone":
             download(tuple[0], tuple[1])
@@ -487,12 +479,11 @@ class Instagram:
         media_preview : string
             Instagram media preview string
 
-        Return
-        ------
+        Returns
+        -------
         image : Image
             Turn media preview string into PIL Image
         """
-
         # Base64 to bytes
         preview_binary = [i for i in a2b_base64(media_preview)]
         # Common header to bytes
@@ -523,12 +514,11 @@ class Instagram:
         hashtag : string
             Hashtag to strip
 
-        Return
-        ------
+        Returns
+        -------
         hashtag : string
             Properly stripped hashtag
         """
-
         try:
             while hashtag[1] == "#":
                 hashtag = hashtag[1:]
@@ -551,12 +541,11 @@ class Instagram:
         username : string
             Username to strip
 
-        Return
-        ------
+        Returns
+        -------
         username : string
             Properly stripped username
         """
-
         try:
             while username[-1] not in list(ascii_letters + digits + "._"):
                 username = username[:-1]
@@ -570,12 +559,11 @@ class Instagram:
     def __a_query(self, query, login_required=True):
         """ Run a query through Instagram's "?__a=1" initial page-loading method 
 
-        Return
-        ------
+        Returns
+        -------
         data : dict
             JSON data from ?__a=1 query
         """
-
         query_count = 0
         max_queries_allowed = 2
 
@@ -612,12 +600,11 @@ class Instagram:
         variables : dict
             Dictionary of variables to include in query
 
-        Return
-        ------
+        Returns
+        -------
         data : dict
             JSON data from GraphQL query
         """
-
         sleep_time = 0
         # Construct GraphQL query url from query has and variables to pass
         query_url = "https://www.instagram.com/graphql/query/?{}".format(
@@ -661,12 +648,11 @@ class Instagram:
         progress_bar : bool
             Display progress of shortcode retrieval
 
-        Return
-        ------
+        Returns
+        -------
         shortcode_list : list
             List of all shortcodes for a user
         """
-
         # Load previous list if applicable, otherwise initialize empty list
         if old_list != None:
             shortcode_list = old_list
@@ -952,12 +938,16 @@ class Instagram:
                 "story_viewer_fetch_count": 50,
             },
         )
-        for story_item in response["data"]["reels_media"][0]["items"]:
-            story = self.__get_story(story_item)
-            if "id" in story:
-                if story["id"] not in self.story_ids:
-                    self.json["stories"].append(story)
-                    self.story_ids.append(story["id"])
+        # Try to add stories, pass if none
+        try:
+            for story_item in response["data"]["reels_media"][0]["items"]:
+                story = self.__get_story(story_item)
+                if "id" in story:
+                    if story["id"] not in self.story_ids:
+                        self.json["stories"].append(story)
+                        self.story_ids.append(story["id"])
+        except:
+            pass
 
     def __get_highlight_reel(self, highlight_reel_id):
         response = self.__graphql_query(
@@ -1047,8 +1037,8 @@ class Instagram:
         mode : str
             Determine whether media preview images should be shown or saved
 
-        Return
-        ------
+        Returns
+        -------
         results : list
             List of all media previews as numpy arrays
         """
@@ -1100,7 +1090,6 @@ class Instagram:
         progress_bar : bool
             Display progress of post download
         """
-
         # Create output directory, if necessary
         mkdir(output_dir)
         # Fill stories list with filenames and url's to hd thumbniails
@@ -1132,7 +1121,6 @@ class Instagram:
         progress_bar : bool
             Display progress of post download
         """
-
         # Create output directory, if necessary
         mkdir(output_dir)
         # Fill highlights list with filenames and url's to hd thumbniails
@@ -1165,7 +1153,6 @@ class Instagram:
         progress_bar : bool
             Display progress of post download
         """
-
         # Create output directory, if necessary
         mkdir(output_dir)
         # Fill thumbnail list with filenames and url's to hd thumbniails
@@ -1198,7 +1185,6 @@ class Instagram:
         progress_bar : bool
             Display progress of post download
         """
-
         # Create output directory, if necessary
         mkdir(output_dir)
         # Fill content list with filenames and url's to hd content
@@ -1229,12 +1215,11 @@ class Instagram:
         number : str
             Number of post
 
-        Return
-        ------
+        Returns
+        -------
         shortcode : string
             Shortcode correlating with post
         """
-
         # Ensure count is <= media count
         if number <= self.json["profile"]["media count"]:
             return self.shortcode_list[number]
@@ -1254,12 +1239,11 @@ class Instagram:
         keyword : str
             keyword to search captions for
 
-        Return
-        ------
+        Returns
+        -------
         captions : list
             List of matches of form (shortcode, caption)
         """
-
         captions = []
         for post in self.json["posts"]:
             shortcode = post["shortcode"]
@@ -1272,12 +1256,11 @@ class Instagram:
     def get_tagged_users(self):
         """ Get list of all users tagged in post
 
-        Return
-        ------
+        Returns
+        -------
         tagged_users : list
             List of all tagged users
         """
-
         tagged_users = {}
         for post in self.json["posts"]:
             shortcode = post["shortcode"]
@@ -1305,12 +1288,11 @@ class Instagram:
     def get_tagged_users_in_captions(self):
         """ Get list of all users tagged in captions
 
-        Return
-        ------
+        Returns
+        -------
         tagged_users : list
             List of all tagged users in captions
         """
-
         tagged_users = {}
         for post in self.json["posts"]:
             shortcode = post["shortcode"]
@@ -1334,12 +1316,11 @@ class Instagram:
     def get_hashtags(self):
         """ Get all hashtags (and the posts that use them) from a user, sorted by frequency 
         
-        Return
-        ------
+        Returns
+        -------
         hashtags : list
             Sorted list of all hashtags by post frequency of form (hashtag, [shortcode(s)])
         """
-
         hashtags = {}
         for post in self.json["posts"]:
             shortcode = post["shortcode"]
@@ -1364,12 +1345,11 @@ class Instagram:
     def get_posts_by_like_count(self):
         """ Sort posts by like count
         
-        Return
-        ------
+        Returns
+        -------
         likes : list
             Sorted list of all posts by like count in form (shortcode, like count)
         """
-
         likes = []
         for post in self.json["posts"]:
             shortcode = post["shortcode"]
@@ -1382,11 +1362,10 @@ class Instagram:
     def get_lifetime_like_count(self):
         """ Total number of likes a user has received
         
-        Return
-        ------
+        Returns
+        -------
         likes : int
             Number of total likes a user has received
         """
-
         likes = self.get_posts_by_like_count()
         return sum([like_count for (shortcode, like_count) in likes])

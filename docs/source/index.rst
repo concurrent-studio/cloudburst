@@ -25,17 +25,13 @@ API documentation
 
 Advanced topics
 ---------------
-.. toctree::
-    :maxdepth: 2
-
-    social_analytics
+Check back here later
 
 Reference
 ---------
 .. toctree::
     :maxdepth: 2
 
-    changelog
     glossary
 
 * :ref:`genindex`

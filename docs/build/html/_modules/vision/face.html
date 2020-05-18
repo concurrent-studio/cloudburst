@@ -1,0 +1,926 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>vision.face &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>vision.face</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for vision.face</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">dlib</span>
+<span class="kn">import</span> <span class="nn">cloudburst</span> <span class="k">as</span> <span class="nn">cb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">face_recognition</span>
+<span class="kn">import</span> <span class="nn">face_recognition_models</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">imutils</span> <span class="kn">import</span> <span class="n">face_utils</span>
+<span class="kn">from</span> <span class="nn">cloudburst.core</span> <span class="kn">import</span> <span class="n">concurrent</span>
+<span class="kn">from</span> <span class="nn">.io</span> <span class="kn">import</span> <span class="n">load_png</span><span class="p">,</span> <span class="n">get_points_from_disk</span><span class="p">,</span> <span class="n">write_points_to_disk</span>
+<span class="kn">from</span> <span class="nn">.transform</span> <span class="kn">import</span> <span class="n">draw_points_on_image</span><span class="p">,</span> <span class="n">draw_rect_on_image</span>
+
+<span class="c1"># nose = landmarks[27:36]</span>
+<span class="c1"># mouth = landmarks[48:68] haarcascade_mcs_mouth</span>
+<span class="c1"># haarcascade_fullbody.xml</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;get_faces&quot;</span><span class="p">,</span> <span class="s2">&quot;get_eyes&quot;</span><span class="p">,</span> <span class="s2">&quot;get_landmarks&quot;</span><span class="p">,</span> <span class="s2">&quot;average_faces&quot;</span><span class="p">]</span>
+
+<span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_bounding_box</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">points</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">points</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_box_padding</span><span class="p">(</span><span class="n">box_x</span><span class="p">,</span> <span class="n">box_y</span><span class="p">,</span> <span class="n">box_w</span><span class="p">,</span> <span class="n">box_h</span><span class="p">,</span> <span class="n">image_w</span><span class="p">,</span> <span class="n">image_h</span><span class="p">,</span> <span class="n">w_padding</span><span class="p">,</span> <span class="n">h_padding</span><span class="p">):</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_y</span> <span class="o">-</span> <span class="n">h_padding</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_y</span> <span class="o">-</span> <span class="n">h_padding</span><span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">image_h</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_y</span> <span class="o">+</span> <span class="n">box_h</span> <span class="o">+</span> <span class="n">h_padding</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">image_h</span>
+        <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_y</span> <span class="o">+</span> <span class="n">box_h</span> <span class="o">+</span> <span class="n">h_padding</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_x</span> <span class="o">-</span> <span class="n">w_padding</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_x</span> <span class="o">-</span> <span class="n">w_padding</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">image_w</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_x</span> <span class="o">+</span> <span class="n">box_w</span> <span class="o">+</span> <span class="n">w_padding</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">image_w</span>
+        <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_x</span> <span class="o">+</span> <span class="n">box_w</span> <span class="o">+</span> <span class="n">w_padding</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span>
+
+
+<span class="c1"># Function to deconstruct rectangle into its vertices</span>
+<span class="k">def</span> <span class="nf">_dlib_rect_deconstruct</span><span class="p">(</span><span class="n">rect</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">rect</span><span class="o">.</span><span class="n">top</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">right</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">bottom</span><span class="p">(),</span> <span class="n">rect</span><span class="o">.</span><span class="n">left</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_get_face</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="c1"># Unpack tuple</span>
+    <span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span>
+        <span class="n">face_detector</span><span class="p">,</span>
+        <span class="n">shape_predictor</span><span class="p">,</span>
+        <span class="n">upsample_factor</span><span class="p">,</span>
+        <span class="n">landmarks</span><span class="p">,</span>
+        <span class="n">only_landmarked</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">args</span>
+
+    <span class="c1"># Image results</span>
+    <span class="n">image_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Check for existing landmark files unless overwrite active</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+        <span class="n">landmark_file</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">*.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)))</span>
+
+    <span class="n">source_filename</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">if</span> <span class="n">landmark_file</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Load file</span>
+            <span class="n">filetype</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;.jpg&quot;</span> <span class="ow">or</span> <span class="s2">&quot;.jpeg&quot;</span><span class="p">:</span>
+                <span class="n">image_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;.png&quot;</span><span class="p">:</span>
+                <span class="n">image_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">load_png</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filetype </span><span class="si">{</span><span class="n">filetype</span><span class="si">}</span><span class="s2"> not currently supported, skipping </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">pass</span>
+
+            <span class="c1"># Get face locations</span>
+            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;cnn&quot;</span><span class="p">:</span>
+                <span class="n">face_locations</span> <span class="o">=</span> <span class="n">face_detector</span><span class="p">(</span><span class="n">image_array</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;hog&quot;</span><span class="p">:</span>
+                <span class="n">face_locations</span> <span class="o">=</span> <span class="n">face_detector</span><span class="p">(</span><span class="n">image_array</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;haar_front&quot;</span><span class="p">:</span>
+                <span class="n">face_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CascadeClassifier</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/models/haarcascade_frontalface_default.xml&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_folder</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">face_locations</span> <span class="o">=</span> <span class="n">face_cascade</span><span class="o">.</span><span class="n">detectMultiScale</span><span class="p">(</span>
+                    <span class="n">image_array</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">minNeighbors</span><span class="o">=</span><span class="mi">5</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;haar_profile&quot;</span><span class="p">:</span>
+                <span class="n">face_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CascadeClassifier</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/models/haarcascade_profileface.xml&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_folder</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">face_locations</span> <span class="o">=</span> <span class="n">face_cascade</span><span class="o">.</span><span class="n">detectMultiScale</span><span class="p">(</span>
+                    <span class="n">image_array</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">minNeighbors</span><span class="o">=</span><span class="mi">5</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Crop faces with padding</span>
+            <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">image_array</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">face_location</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">face_locations</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;cnn&quot;</span><span class="p">:</span>
+                    <span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="n">_dlib_rect_deconstruct</span><span class="p">(</span><span class="n">face_location</span><span class="o">.</span><span class="n">rect</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;haar&quot;</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">face_location</span>
+                    <span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">x</span>
+                <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;hog&quot;</span><span class="p">:</span>
+                    <span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="n">_dlib_rect_deconstruct</span><span class="p">(</span><span class="n">face_location</span><span class="p">)</span>
+
+                <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">_box_padding</span><span class="p">(</span>
+                    <span class="n">l</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="n">l</span><span class="p">,</span> <span class="n">b</span> <span class="o">-</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">padding</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">l</span><span class="p">),</span> <span class="n">padding</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="n">cropped_face_array</span> <span class="o">=</span> <span class="n">image_array</span><span class="p">[</span><span class="n">top</span><span class="p">:</span><span class="n">bottom</span><span class="p">,</span> <span class="n">left</span><span class="p">:</span><span class="n">right</span><span class="p">]</span>
+                <span class="n">cropped_face</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">cropped_face_array</span><span class="p">)</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_face</span><span class="si">{}</span><span class="s2">.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_filename</span><span class="p">,</span> <span class="n">idx</span><span class="p">))</span>
+                <span class="p">)</span>
+
+                <span class="n">face_landmarks</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="n">landmarks</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                    <span class="c1"># Load image and convert to grayscale</span>
+                    <span class="n">image_grayscale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                        <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">cropped_face_array</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="c1"># Find landmarks on all given faces</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">rect</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">face_detector</span><span class="p">(</span><span class="n">image_grayscale</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+                        <span class="c1"># Make the prediction, tranferring it to numpy array</span>
+                        <span class="k">for</span> <span class="n">landmark</span> <span class="ow">in</span> <span class="n">face_utils</span><span class="o">.</span><span class="n">shape_to_np</span><span class="p">(</span>
+                            <span class="n">shape_predictor</span><span class="p">(</span><span class="n">image_grayscale</span><span class="p">,</span> <span class="n">rect</span><span class="p">)</span>
+                        <span class="p">):</span>
+                            <span class="n">face_landmarks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">landmark</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">landmark</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                            <span class="p">)</span>
+
+                <span class="n">image_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">source_filename</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">cropped_face</span><span class="p">,</span> <span class="n">face_landmarks</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error occured at </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cropped_face</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="n">face_landmarks</span> <span class="o">=</span> <span class="n">get_points_from_disk</span><span class="p">(</span><span class="n">landmark_file</span><span class="p">)</span>
+
+        <span class="n">jpg</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">landmark_file</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.jpg&quot;</span><span class="p">)</span>
+        <span class="n">jpeg</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">landmark_file</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.jpeg&quot;</span><span class="p">)</span>
+        <span class="n">png</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">landmark_file</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">jpg</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">jpg</span>
+        <span class="k">elif</span> <span class="n">jpeg</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">jpeg</span>
+        <span class="k">elif</span> <span class="n">png</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">png</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="s2">&quot;File not found&quot;</span>
+
+        <span class="n">image_results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">landmark_file</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">cropped_face</span><span class="p">,</span> <span class="n">face_landmarks</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;show&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">image_results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[]:</span>
+                <span class="n">draw_points_on_image</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">landmarks</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">image_results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.txt&quot;</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Save not required, landmark file already exists&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">only_landmarked</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[]:</span>
+                        <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">write_points_to_disk</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.txt&quot;</span><span class="p">),</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">image_results</span>
+
+
+<div class="viewcode-block" id="get_faces"><a class="viewcode-back" href="../../generated/vision.get_faces.html#vision.get_faces">[docs]</a><span class="k">def</span> <span class="nf">get_faces</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;save&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;faces&quot;</span><span class="p">,</span>
+    <span class="n">padding</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;hog&quot;</span><span class="p">,</span>
+    <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">landmarks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">only_landmarked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get all faces within an image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        filepath to an image file</span>
+<span class="sd">    padding : float</span>
+<span class="sd">        pecentage of padding to expand</span>
+<span class="sd">    upsample_factor : int</span>
+<span class="sd">        number of times to upsample image</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    faces : list</span>
+<span class="sd">        list of images of faces in the given image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Print Errors</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;save&quot;</span><span class="p">,</span> <span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="s2">&quot;return&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: mode must be save (default), show, or return&quot;</span><span class="p">)</span>
+        <span class="n">quit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cnn&quot;</span><span class="p">,</span> <span class="s2">&quot;hog&quot;</span><span class="p">,</span> <span class="s2">&quot;haar_front&quot;</span><span class="p">,</span> <span class="s2">&quot;haar_profile&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: mode must be save (default), show, or return&quot;</span><span class="p">)</span>
+        <span class="n">quit</span><span class="p">()</span>
+
+    <span class="c1"># Load face detectors</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;cnn&quot;</span><span class="p">:</span>
+        <span class="n">face_detector</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">cnn_face_detection_model_v1</span><span class="p">(</span>
+            <span class="n">face_recognition_models</span><span class="o">.</span><span class="n">cnn_face_detector_model_location</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;hog&quot;</span><span class="p">:</span>
+        <span class="n">face_detector</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">get_frontal_face_detector</span><span class="p">()</span>
+    <span class="n">shape_predictor</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">shape_predictor</span><span class="p">(</span>
+        <span class="n">face_recognition_models</span><span class="o">.</span><span class="n">pose_predictor_model_location</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Ensure list of image paths passed</span>
+    <span class="n">image_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">image_path</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">image_path</span>
+    <span class="c1"># Structure list for concurrency</span>
+    <span class="n">faces_to_threadpool</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">:</span>
+        <span class="n">faces_to_threadpool</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">image_path</span><span class="p">,</span>
+                <span class="n">mode</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">padding</span><span class="p">,</span>
+                <span class="n">model</span><span class="p">,</span>
+                <span class="n">face_detector</span><span class="p">,</span>
+                <span class="n">shape_predictor</span><span class="p">,</span>
+                <span class="n">upsample_factor</span><span class="p">,</span>
+                <span class="n">landmarks</span><span class="p">,</span>
+                <span class="n">only_landmarked</span><span class="p">,</span>
+                <span class="n">overwrite</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Create output directory</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save&quot;</span><span class="p">:</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">concurrent</span><span class="p">(</span>
+        <span class="n">_get_face</span><span class="p">,</span>
+        <span class="n">faces_to_threadpool</span><span class="p">,</span>
+        <span class="n">executor</span><span class="o">=</span><span class="s2">&quot;threadpool&quot;</span><span class="p">,</span>
+        <span class="n">progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Getting faces&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_eyes"><a class="viewcode-back" href="../../generated/vision.get_eyes.html#vision.get_eyes">[docs]</a><span class="k">def</span> <span class="nf">get_eyes</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;save_with_progress&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;eyes&quot;</span><span class="p">,</span>
+    <span class="n">padding</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;landmarks&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get all eyes within an image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        filepath to an image file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    eyes : list</span>
+<span class="sd">        list of images of eyes in the given image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save_with_progress&quot;</span><span class="p">:</span>
+        <span class="n">face_mode</span> <span class="o">=</span> <span class="s2">&quot;save&quot;</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;save&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">face_mode</span> <span class="o">=</span> <span class="s2">&quot;return&quot;</span>
+
+    <span class="c1"># Create output directory</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save&quot;</span><span class="p">:</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="c1"># Convert to list if a single path is given</span>
+    <span class="n">image_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">image_path</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">image_path</span>
+
+    <span class="n">wp</span> <span class="o">=</span> <span class="n">padding</span>
+    <span class="n">hp</span> <span class="o">=</span> <span class="n">padding</span>
+
+    <span class="n">landmarks</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">eyes_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CascadeClassifier</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/models/haarcascade_eye.xml&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_folder</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;landmarks&quot;</span><span class="p">:</span>
+        <span class="n">landmarks</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">wp</span> <span class="o">+=</span> <span class="mf">0.5</span>
+        <span class="n">hp</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;haar2&quot;</span><span class="p">:</span>
+        <span class="n">eyes_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CascadeClassifier</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/models/haarcascade_eye_tree_eyeglasses.xml&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_folder</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Error: either landmarks (default) haar1 or haar2 model type must be specified&quot;</span>
+        <span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">landmark_file</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">face_landmarks</span> <span class="ow">in</span> <span class="n">get_faces</span><span class="p">(</span>
+        <span class="n">image_paths</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">face_mode</span><span class="p">,</span>
+        <span class="n">landmarks</span><span class="o">=</span><span class="n">landmarks</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_faces&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_dir</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="n">face_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">face</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">landmarks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">face_landmarks</span> <span class="o">!=</span> <span class="p">[]:</span>
+                <span class="n">eyes</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">_bounding_box</span><span class="p">(</span><span class="n">face_landmarks</span><span class="p">[</span><span class="mi">36</span><span class="p">:</span><span class="mi">42</span><span class="p">]),</span>
+                    <span class="n">_bounding_box</span><span class="p">(</span><span class="n">face_landmarks</span><span class="p">[</span><span class="mi">42</span><span class="p">:</span><span class="mi">48</span><span class="p">]),</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">eyes</span> <span class="o">=</span> <span class="n">eyes_cascade</span><span class="o">.</span><span class="n">detectMultiScale</span><span class="p">(</span><span class="n">face_array</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">eye_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">((</span><span class="n">eyes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">eyes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">eyes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">eyes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="p">)</span>
+                <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">face_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">face_array</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span>
+                    <span class="n">face_array</span><span class="p">,</span>
+                    <span class="n">cv2</span><span class="o">.</span><span class="n">getRotationMatrix2D</span><span class="p">((</span><span class="n">cols</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rows</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">eye_angle</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="n">eyes_on_face</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ew</span><span class="p">,</span> <span class="n">eh</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">eyes</span><span class="p">):</span>
+            <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">face_array</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">_box_padding</span><span class="p">(</span>
+                <span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ew</span><span class="p">,</span> <span class="n">eh</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">wp</span> <span class="o">*</span> <span class="n">ew</span><span class="p">,</span> <span class="n">hp</span> <span class="o">*</span> <span class="n">eh</span>
+            <span class="p">)</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">bottom</span> <span class="o">-</span> <span class="n">top</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">right</span> <span class="o">-</span> <span class="n">left</span>
+            <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span><span class="p">:</span>
+                <span class="n">extra_padding</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">width</span> <span class="o">-</span> <span class="n">height</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">top</span> <span class="o">-=</span> <span class="n">extra_padding</span>
+                <span class="n">bottom</span> <span class="o">=</span> <span class="n">top</span> <span class="o">+</span> <span class="n">width</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">extra_padding</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">height</span> <span class="o">-</span> <span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">left</span> <span class="o">-=</span> <span class="n">extra_padding</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">height</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">bottom</span> <span class="o">-</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cropped_eye</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">face_array</span><span class="p">[</span><span class="n">top</span><span class="p">:</span><span class="n">bottom</span><span class="p">,</span> <span class="n">left</span><span class="p">:</span><span class="n">right</span><span class="p">])</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_eye</span><span class="si">{}</span><span class="s2">.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save&quot;</span><span class="p">:</span>
+                    <span class="n">cropped_eye</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;show&quot;</span><span class="p">:</span>
+                    <span class="n">eyes_on_face</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">),</span> <span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)])</span>
+                <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;return&quot;</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">cropped_eye</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: mode must be save (default), show, or return&quot;</span><span class="p">)</span>
+                    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FUCK&quot;</span><span class="p">)</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;show&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">landmarks</span><span class="p">:</span>
+                <span class="n">face</span> <span class="o">=</span> <span class="n">draw_points_on_image</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">landmarks</span><span class="p">[</span><span class="mi">36</span><span class="p">:</span><span class="mi">48</span><span class="p">])</span>
+            <span class="n">draw_rect_on_image</span><span class="p">(</span>
+                <span class="n">draw_rect_on_image</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">eyes_on_face</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">eyes_on_face</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="get_landmarks"><a class="viewcode-back" href="../../generated/vision.get_landmarks.html#vision.get_landmarks">[docs]</a><span class="k">def</span> <span class="nf">get_landmarks</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;save&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get coordinates of 68 facial landmarks from a given image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        path (or list of paths) to an image(s)</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Get and crop the faces of all images in &#39;./images&#39; folder</span>
+
+<span class="sd">    &gt;&gt;&gt; import cloudburst as cb</span>
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; paths = cb.query(&#39;images&#39;, &#39;jpg&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; for image_path in paths:</span>
+<span class="sd">    &gt;&gt;&gt;     cbv.get_landmarks(image_path)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Configure detector</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="mi">68</span><span class="p">:</span>
+        <span class="n">detector</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">get_frontal_face_detector</span><span class="p">()</span>
+        <span class="n">predictor</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">shape_predictor</span><span class="p">(</span>
+            <span class="n">face_recognition_models</span><span class="o">.</span><span class="n">pose_predictor_model_location</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">detector</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">get_frontal_face_detector</span><span class="p">()</span>
+        <span class="n">predictor</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">shape_predictor</span><span class="p">(</span>
+            <span class="n">face_recognition_models</span><span class="o">.</span><span class="n">pose_predictor_five_point_model_location</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: choose a valid model: 68 (default) or 5&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">image_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">))</span>
+
+    <span class="c1"># Load image and convert to grayscale</span>
+    <span class="n">image_grayscale</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image_array</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2GRAY</span><span class="p">)</span>
+
+    <span class="n">landmarks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Find landmarks on all given faces</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">rect</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">detector</span><span class="p">(</span><span class="n">image_grayscale</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="c1"># Make the prediction, tranferring it to numpy array</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">face_utils</span><span class="o">.</span><span class="n">shape_to_np</span><span class="p">(</span><span class="n">predictor</span><span class="p">(</span><span class="n">image_grayscale</span><span class="p">,</span> <span class="n">rect</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">landmark</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">:</span>
+            <span class="n">landmarks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">landmark</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">landmark</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;save&quot;</span><span class="p">:</span>
+        <span class="n">write_points_to_disk</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.txt&quot;</span><span class="p">),</span> <span class="n">landmarks</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">landmarks</span></div>
+
+
+<span class="c1">########################### AVERAGE FACES ###########################</span>
+<span class="c1"># Clean this up</span>
+<span class="c1"># Read points from text files in directory</span>
+<span class="k">def</span> <span class="nf">build_point_matrix</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+    <span class="n">points_matrix</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">points_file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cb</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s2">&quot;txt&quot;</span><span class="p">)):</span>
+        <span class="n">points_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_points_from_disk</span><span class="p">(</span><span class="n">points_file</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">points_matrix</span>
+
+
+<span class="c1"># Read all images in folder.</span>
+<span class="k">def</span> <span class="nf">build_image_matrix</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+    <span class="n">image_matrix</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">image_file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cb</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">)):</span>
+        <span class="c1"># Read image found.</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_file</span><span class="p">)</span>
+        <span class="c1"># Convert to floating point</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+        <span class="c1"># Add to matrix of images</span>
+        <span class="n">image_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image_matrix</span>
+
+
+<span class="k">def</span> <span class="nf">similarity_transform</span><span class="p">(</span><span class="n">inPoints</span><span class="p">,</span> <span class="n">outPoints</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute similarity transform given two lists of two points in form [(x, y), (x, y)]</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Because OpenCV requires 3 pairs of corresponding points for a similarity transform, </span>
+<span class="sd">    we have to fake the third one</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">s60</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+    <span class="n">c60</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+
+    <span class="n">inPts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">inPoints</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">outPts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">outPoints</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">xin</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">c60</span> <span class="o">*</span> <span class="p">(</span><span class="n">inPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="o">-</span> <span class="n">s60</span> <span class="o">*</span> <span class="p">(</span><span class="n">inPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">yin</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">s60</span> <span class="o">*</span> <span class="p">(</span><span class="n">inPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">c60</span> <span class="o">*</span> <span class="p">(</span><span class="n">inPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">inPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">inPts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">xin</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">yin</span><span class="p">)])</span>
+
+    <span class="n">xout</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">c60</span> <span class="o">*</span> <span class="p">(</span><span class="n">outPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="o">-</span> <span class="n">s60</span> <span class="o">*</span> <span class="p">(</span><span class="n">outPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">yout</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">s60</span> <span class="o">*</span> <span class="p">(</span><span class="n">outPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">c60</span> <span class="o">*</span> <span class="p">(</span><span class="n">outPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">outPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">outPts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">xout</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">yout</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">estimateAffinePartial2D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">inPts</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">outPts</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">delaunay_triangulation</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a rectangle and a list of points, calculate the delaunay triangulation&quot;&quot;&quot;</span>
+    <span class="n">subdiv</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">Subdiv2D</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+        <span class="n">subdiv</span><span class="o">.</span><span class="n">insert</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+    <span class="n">dt</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">subdiv</span><span class="o">.</span><span class="n">getTriangleList</span><span class="p">():</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">5</span><span class="p">])]</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">point_in_rect</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="ow">and</span> <span class="n">cb</span><span class="o">.</span><span class="n">point_in_rect</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="ow">and</span> <span class="n">cb</span><span class="o">.</span><span class="n">point_in_rect</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="p">):</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="nb">abs</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+                        <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+                    <span class="p">):</span>
+                        <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">dt</span>
+
+
+<span class="k">def</span> <span class="nf">constrainPoint</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">),</span> <span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">),</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">apply_affine_transform</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">src_tri</span><span class="p">,</span> <span class="n">dst_tri</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply affine transform calculated using srcTri and dstTri to src and output an image of size&quot;&quot;&quot;</span>
+    <span class="n">affine_transform</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getAffineTransform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">src_tri</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">dst_tri</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span>
+        <span class="n">src</span><span class="p">,</span>
+        <span class="n">affine_transform</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">flags</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LINEAR</span><span class="p">,</span>
+        <span class="n">borderMode</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_REFLECT_101</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">warpTriangle</span><span class="p">(</span><span class="n">img1</span><span class="p">,</span> <span class="n">img2</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Warp and alpha blend triangular regions from src images into output image&quot;&quot;&quot;</span>
+    <span class="n">r1</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">t1</span><span class="p">]))</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">t2</span><span class="p">]))</span>
+    <span class="n">t1Rect</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">t2Rect</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">t2RectInt</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">t1Rect</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">t1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">r1</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">t1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r1</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="n">t2Rect</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">t2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">t2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="n">t2RectInt</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">t2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">t2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+
+    <span class="c1"># Get mask by filling triangle</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">fillConvexPoly</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">t2RectInt</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Apply warpImage to small rectangular patches</span>
+    <span class="n">img1Rect</span> <span class="o">=</span> <span class="n">img1</span><span class="p">[</span><span class="n">r1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">r1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r1</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">r1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">r1</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+
+    <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">img2Rect</span> <span class="o">=</span> <span class="n">apply_affine_transform</span><span class="p">(</span><span class="n">img1Rect</span><span class="p">,</span> <span class="n">t1Rect</span><span class="p">,</span> <span class="n">t2Rect</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="n">img2Rect</span> <span class="o">=</span> <span class="n">img2Rect</span> <span class="o">*</span> <span class="n">mask</span>
+
+    <span class="c1"># Copy triangular region of the rectangular patch to the output image</span>
+    <span class="n">img2</span><span class="p">[</span><span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">img2</span><span class="p">[</span>
+        <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-</span> <span class="n">mask</span><span class="p">)</span>
+    <span class="n">img2</span><span class="p">[</span><span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">img2</span><span class="p">[</span><span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">r2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">+</span> <span class="n">img2Rect</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="average_faces"><a class="viewcode-back" href="../../generated/vision.average_faces.html#vision.average_faces">[docs]</a><span class="k">def</span> <span class="nf">average_faces</span><span class="p">(</span><span class="n">directory_path</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="n">output_dimensions</span><span class="o">=</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Average a set of faces into a single composite image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory_path : str</span>
+<span class="sd">        path to directory inside which all images will be averaged</span>
+<span class="sd">    output_filepath : str</span>
+<span class="sd">        path that the image will be saved to</span>
+<span class="sd">    output_dimensions : tuple</span>
+<span class="sd">        size of output image</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Average all faces in &#39;./faces&#39; folder</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; cbv.average_faces(&quot;./test_dir&quot;, &quot;average.jpg&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">output_dimensions</span>
+
+    <span class="c1"># Generate point and image matrices</span>
+    <span class="n">point_matrix</span> <span class="o">=</span> <span class="n">build_point_matrix</span><span class="p">(</span><span class="n">directory_path</span><span class="p">)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">build_image_matrix</span><span class="p">(</span><span class="n">directory_path</span><span class="p">)</span>
+
+    <span class="c1"># Eye corners</span>
+    <span class="n">eyecorner_dst</span> <span class="o">=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="mf">0.3</span> <span class="o">*</span> <span class="n">w</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)),</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="mf">0.7</span> <span class="o">*</span> <span class="n">w</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))]</span>
+
+    <span class="n">images_norm</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">points_norm</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Add boundary points for delaunay triangulation</span>
+    <span class="n">boundary_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="c1"># Initialize location of average points to 0s</span>
+    <span class="n">points_average</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">point_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">boundary_pts</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">image_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+    <span class="c1"># Warp images and trasnform landmarks to output coordinate system,</span>
+    <span class="c1"># and find average of transformed landmarks.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">image_count</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">points1</span> <span class="o">=</span> <span class="n">point_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># Corners of the eye in input image</span>
+            <span class="n">eyecornerSrc</span> <span class="o">=</span> <span class="p">[</span><span class="n">point_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">36</span><span class="p">],</span> <span class="n">point_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">45</span><span class="p">]]</span>
+
+            <span class="c1"># Compute similarity transform</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">similarity_transform</span><span class="p">(</span><span class="n">eyecornerSrc</span><span class="p">,</span> <span class="n">eyecorner_dst</span><span class="p">)</span>
+
+            <span class="c1"># Apply similarity transformation</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">st</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">))</span>
+
+            <span class="c1"># Apply similarity transform on points</span>
+            <span class="n">points2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points1</span><span class="p">),</span> <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">points2</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+
+            <span class="c1"># Append boundary points. Will be used in Delaunay Triangulation</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">boundary_pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Calculate location of average landmark points.</span>
+            <span class="n">points_average</span> <span class="o">=</span> <span class="n">points_average</span> <span class="o">+</span> <span class="n">points</span> <span class="o">/</span> <span class="n">image_count</span>
+            <span class="n">points_norm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+            <span class="n">images_norm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># if empty matrix read</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># Delaunay triangulation</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">delaunay_triangulation</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points_average</span><span class="p">))</span>
+
+    <span class="c1"># Output image</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">())</span>
+
+    <span class="c1"># Warp input images to average image landmarks</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">images_norm</span><span class="p">)):</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">())</span>
+        <span class="c1"># Transform triangles one by one</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dt</span><span class="p">)):</span>
+            <span class="n">t_in</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">t_out</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">p_in</span> <span class="o">=</span> <span class="n">points_norm</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">dt</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]]</span>
+                <span class="n">p_in</span> <span class="o">=</span> <span class="n">constrainPoint</span><span class="p">(</span><span class="n">p_in</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+                <span class="n">p_out</span> <span class="o">=</span> <span class="n">points_average</span><span class="p">[</span><span class="n">dt</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]]</span>
+                <span class="n">p_out</span> <span class="o">=</span> <span class="n">constrainPoint</span><span class="p">(</span><span class="n">p_out</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+                <span class="n">t_in</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_in</span><span class="p">)</span>
+                <span class="n">t_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_out</span><span class="p">)</span>
+
+            <span class="n">warpTriangle</span><span class="p">(</span><span class="n">images_norm</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">img</span><span class="p">,</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">)</span>
+        <span class="c1"># Add image intensities for averaging</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">output</span> <span class="o">+</span> <span class="n">img</span>
+    <span class="c1"># Divide by image_count to get average</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">convertScaleAbs</span><span class="p">(</span><span class="n">output</span> <span class="o">/</span> <span class="n">image_count</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="p">(</span><span class="mf">255.0</span><span class="p">))</span>
+    <span class="c1"># cv2.imshow(&quot;image&quot;, output)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">),</span> <span class="n">output</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

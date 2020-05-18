@@ -26,8 +26,6 @@ social.Instagram
       ~Instagram.get_previews
       ~Instagram.get_tagged_users
       ~Instagram.get_tagged_users_in_captions
-      ~Instagram.login
-      ~Instagram.logout
       ~Instagram.search_captions_by_keyword
    
    

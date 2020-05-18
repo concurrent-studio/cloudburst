@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-from .color import *
-from .face import *
-from .face3d import *
-from .io import *
-from .transform import *
-
 """
 Vision
 ======
@@ -60,3 +54,9 @@ Image transformations and manipulations
     draw_rect_on_image
     create_collage
 """
+
+from .color import *
+from .face import *
+from .face3d import *
+from .io import *
+from .transform import *

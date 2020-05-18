@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>vision.transform &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>vision.transform</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for vision.transform</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;draw_points_on_image&quot;</span><span class="p">,</span> <span class="s2">&quot;draw_rect_on_image&quot;</span><span class="p">,</span> <span class="s2">&quot;create_collage&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="draw_points_on_image"><a class="viewcode-back" href="../../generated/vision.draw_points_on_image.html#vision.draw_points_on_image">[docs]</a><span class="k">def</span> <span class="nf">draw_points_on_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">point_list</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Draw points on an image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        path to image</span>
+<span class="sd">    point_list : list</span>
+<span class="sd">        list of points in form (x, y) to draw on image</span>
+<span class="sd">    radius : int</span>
+<span class="sd">        radius of points to draw in pixels</span>
+<span class="sd">    color : tuple</span>
+<span class="sd">        color of points to draw</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks of an image and draw them on the imate</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; cbv.draw_points_on_image(&quot;bella-hadid.jpg&quot;, landmarks)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">ellipse</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">radius</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">radius</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">radius</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">radius</span><span class="p">)),</span>
+            <span class="n">fill</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="draw_rect_on_image"><a class="viewcode-back" href="../../generated/vision.draw_rect_on_image.html#vision.draw_rect_on_image">[docs]</a><span class="k">def</span> <span class="nf">draw_rect_on_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Draw points on an image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        path to image</span>
+<span class="sd">    point_list : list</span>
+<span class="sd">        list of points in form (x, y) to draw on image</span>
+<span class="sd">    radius : int</span>
+<span class="sd">        radius of points to draw in pixels</span>
+<span class="sd">    color : tuple</span>
+<span class="sd">        color of points to draw</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks of an image and draw them on the imate</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; cbv.draw_points_on_image(&quot;bella-hadid.jpg&quot;, landmarks)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outline</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="create_collage"><a class="viewcode-back" href="../../generated/vision.create_collage.html#vision.create_collage">[docs]</a><span class="k">def</span> <span class="nf">create_collage</span><span class="p">(</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">image_list</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blank_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a collage from a list of images</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    width : int</span>
+<span class="sd">        width of collage</span>
+<span class="sd">    height : int</span>
+<span class="sd">        height of collage</span>
+<span class="sd">    min_size : int</span>
+<span class="sd">        minimum allowable size of grid image</span>
+<span class="sd">    image_list : list</span>
+<span class="sd">        list of images for collage</span>
+<span class="sd">    func : function, optional</span>
+<span class="sd">        custom function to operate on each image</span>
+<span class="sd">    blank_color : tuple, optional</span>
+<span class="sd">        color for blank image</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create collage of dimensions (1920, 1080) of images from &#39;./images&#39; directory</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; import cloudburst as cb</span>
+<span class="sd">    &gt;&gt;&gt; image_paths = cb.query(&quot;test_dir&quot;, &quot;images&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; cbv.create_collage(1920, 1080, 10, image_paths)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_list</span><span class="p">)</span>
+
+    <span class="n">min_dimension</span> <span class="o">=</span> <span class="n">width</span> <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="n">height</span> <span class="k">else</span> <span class="n">height</span>
+    <span class="n">squares</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">min_dimension</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">width</span> <span class="o">%</span> <span class="n">s</span> <span class="o">==</span> <span class="n">height</span> <span class="o">%</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">squares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">get_squares</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="n">images_per_collage</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">*</span> <span class="n">size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">image_count</span> <span class="o">&gt;</span> <span class="n">images_per_collage</span><span class="p">:</span>
+            <span class="n">unused_image_count</span> <span class="o">=</span> <span class="n">image_count</span>
+            <span class="n">collage_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">unused_image_count</span> <span class="o">&gt;</span> <span class="n">images_per_collage</span><span class="p">:</span>
+                <span class="n">unused_image_count</span> <span class="o">-=</span> <span class="n">images_per_collage</span>
+                <span class="n">collage_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">unused_image_count</span><span class="p">,</span> <span class="n">images_per_collage</span><span class="p">,</span> <span class="n">collage_count</span><span class="p">))</span>
+
+    <span class="n">ideal_size</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">collage_count</span> <span class="o">=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collage_count</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create collage </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">collage_count</span><span class="p">))</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+        <span class="n">count_scale_value</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">collage</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">[</span>
+            <span class="n">count_scale_value</span> <span class="p">:</span> <span class="n">count_scale_value</span> <span class="o">+</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">func</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">func</span><span class="p">(</span><span class="n">image_path</span><span class="p">):</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+                        <span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">blank_color</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">collage</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="o">-</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">x</span> <span class="o">+=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">y</span> <span class="o">+=</span> <span class="n">ideal_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">collage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;collage_</span><span class="si">{}</span><span class="s2">.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> images unused&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ideal_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

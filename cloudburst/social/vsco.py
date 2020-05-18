@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """ Scrape VSCO """
-
 import os
 import requests
 from pathlib import Path
@@ -44,13 +43,10 @@ class VSCO:
     Examples
     --------
     Download all data of @joe
-
-    .. code-block:: python
     
-        from cloudburst import social as cbs
-
-        joe = cbs.VSCO("joe") # instantiate new VSCO object
-        joe.download_all() # download all images and journal images
+    >>> from cloudburst import social as cbs
+    >>> joe = cbs.VSCO("joe") # instantiate new VSCO object
+    >>> joe.download_all() # download all images and journal images
     """
 
     def __init__(self, username):

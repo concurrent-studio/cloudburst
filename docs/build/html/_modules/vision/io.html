@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>vision.io &mdash; cloudburst 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cloudburst
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../social.html">Social</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cloudburst</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>vision.io</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for vision.io</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">cloudburst</span> <span class="kn">import</span> <span class="n">get_list_from_file</span><span class="p">,</span> <span class="n">write_list_to_file</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;download&quot;</span><span class="p">,</span> <span class="s2">&quot;write_points_to_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;get_points_from_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;load_png&quot;</span><span class="p">]</span>
+
+<span class="c1"># https://developer.here.com/blog/getting-started-with-geocoding-exif-image-metadata-in-python3</span>
+<span class="c1"># this one&#39;s good •.•</span>
+<span class="c1"># https://pypi.org/project/piexif/</span>
+
+<div class="viewcode-block" id="download"><a class="viewcode-back" href="../../generated/vision.download.html#vision.download">[docs]</a><span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download an image or video from a URL</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to image</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save image to</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Download an image from www.thebrilliance.com and save as &#39;brilliance.jpg&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; url = &#39;https://s3.amazonaws.com/thebrilliance/posts/images/000/001/136/square/LV_BRILL.jpg?1529759316&#39;</span>
+<span class="sd">    &gt;&gt;&gt; cbv.download(url, &#39;brilliance.jpg&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31mError occured during download of content at </span><span class="se">\033</span><span class="s2">[4m</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="se">\033</span><span class="s2">[31m</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_points_to_disk"><a class="viewcode-back" href="../../generated/vision.write_points_to_disk.html#vision.write_points_to_disk">[docs]</a><span class="k">def</span> <span class="nf">write_points_to_disk</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">input_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write a list of points in form (x, y) to disk</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save list to</span>
+<span class="sd">    input_list : list</span>
+<span class="sd">        list of points to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks on an image and write to disk</span>
+
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; cbv.write_points_to_disk(&quot;bella-hadid.txt&quot;, landmarks)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">point_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+    <span class="n">write_list_to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">point_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_points_from_disk"><a class="viewcode-back" href="../../generated/vision.get_points_from_disk.html#vision.get_points_from_disk">[docs]</a><span class="k">def</span> <span class="nf">get_points_from_disk</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a list of points in form (x, y) from saved  file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        filename to save list to</span>
+<span class="sd">    input_list : list</span>
+<span class="sd">        list of points to save</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Calculate facial landmarks on an image and write to disk, then load it back into another list</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; landmarks = cbv.get_landmarks(&quot;bella-hadid.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; cbv.write_points_to_disk(&quot;bella-hadid.txt&quot;, landmarks)</span>
+<span class="sd">    &gt;&gt;&gt; landmarks_from_disk = cbv.get_points_from_disk(&quot;bella-hadid.txt&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; print(landmarks_from_disk)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">input_list</span> <span class="o">=</span> <span class="n">get_list_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">split_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">split_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="load_png"><a class="viewcode-back" href="../../generated/vision.load_png.html#vision.load_png">[docs]</a><span class="k">def</span> <span class="nf">load_png</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">alpha_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Load a png file into PIL Image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : str</span>
+<span class="sd">        path to image file</span>
+<span class="sd">    alpha_color : tuple</span>
+<span class="sd">        RGB Color to replace alpha channel with</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Load test.jpg with white as alpha channel color</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from cloudburst import vision as cbv</span>
+<span class="sd">    &gt;&gt;&gt; im = cbv.load_png(&quot;test.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; im.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">png</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+    <span class="n">png</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="n">png</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">png</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">png</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">image</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, CONCURRENT STUDIO™
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
