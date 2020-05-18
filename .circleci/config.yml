@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip3 install sphinx pytest cloudburst
+          command: pip3 install sphinx pytest tqdm cloudburst
       - run:
           name: Test
           command: pytest
