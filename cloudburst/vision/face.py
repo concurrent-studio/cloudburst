@@ -465,30 +465,6 @@ def get_landmarks(image_path, model=68, mode="save"):
 
 
 ########################### AVERAGE FACES ###########################
-# Clean this up
-# Read points from text files in directory
-def build_point_matrix(dirname):
-    points_matrix = []
-    for points_file in sorted(cb.query(dirname, "txt")):
-        points_matrix.append(get_points_from_disk(points_file))
-
-    return points_matrix
-
-
-# Read all images in folder.
-def build_image_matrix(dirname):
-    image_matrix = []
-    for image_file in sorted(cb.query(dirname, "images")):
-        # Read image found.
-        img = cv2.imread(image_file)
-        # Convert to floating point
-        img = np.float32(img) / 255.0
-        # Add to matrix of images
-        image_matrix.append(img)
-
-    return image_matrix
-
-
 def similarity_transform(inPoints, outPoints):
     """Compute similarity transform given two lists of two points in form [(x, y), (x, y)]
     
@@ -605,12 +581,12 @@ def warpTriangle(img1, img2, t1, t2):
     )
 
 
-def average_faces(directory_path, output_filepath, output_dimensions=(600, 600)):
+def average_faces(image_list, output_filepath, output_dimensions=(600, 600)):
     """Average a set of faces into a single composite image
 
     Parameters
     ----------
-    directory_path : str
+    image_lists : str
         path to directory inside which all images will be averaged
     output_filepath : str
         path that the image will be saved to
@@ -627,8 +603,19 @@ def average_faces(directory_path, output_filepath, output_dimensions=(600, 600))
     w, h = output_dimensions
 
     # Generate point and image matrices
-    point_matrix = build_point_matrix(directory_path)
-    images = build_image_matrix(directory_path)
+    # point_matrix = build_point_matrix(directory_path)
+    images = []
+    point_matrix = []    
+    for image_file in sorted(image_list):
+        # Read image found.
+        img = cv2.imread(image_file)
+        # Convert to floating point
+        img = np.float32(img) / 255.0
+        # Add to matrix of images
+        images.append(img)
+
+        points_file = str(Path(image_file).with_suffix(".txt"))
+        point_matrix.append(get_points_from_disk(points_file))
 
     # Eye corners
     eyecorner_dst = [(np.int(0.3 * w), np.int(h / 3)), (np.int(0.7 * w), np.int(h / 3))]

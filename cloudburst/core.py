@@ -41,7 +41,11 @@ __all__ = [
 ]
 
 
-def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc=""):
+def concurrent(func,
+               input_list,
+               executor="threadpool",
+               progress_bar=False,
+               desc=""):
     """Concurrently execute a function on a list
 
     Parameters
@@ -95,15 +99,17 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
                         print("{} generated an exception: {}".format(val, exc))
             return results
         else:
-            return thread_map(
-                func, input_list, max_workers=max_workers_count, desc=desc
-            )
+            return thread_map(func,
+                              input_list,
+                              max_workers=max_workers_count,
+                              desc=desc)
 
     # MultiProcessing
     elif executor == "processpool":
         if progress_bar == False:
             results = []
-            with ProcessPoolExecutor(max_workers=max_workers_count) as executor:
+            with ProcessPoolExecutor(
+                    max_workers=max_workers_count) as executor:
                 futures = {executor.submit(func, i): i for i in input_list}
                 for future in as_completed(futures):
                     val = futures[future]
@@ -114,13 +120,16 @@ def concurrent(func, input_list, executor="threadpool", progress_bar=False, desc
                         print("{} generated an exception: {}".format(val, exc))
             return results
         else:
-            return process_map(
-                func, input_list, max_workers=max_workers_count, desc=desc
-            )
+            return process_map(func,
+                               input_list,
+                               max_workers=max_workers_count,
+                               desc=desc)
 
     # Invalid executor given
     else:
-        raise ('Error: please use executor "processpool" (default) or "threadpool"')
+        raise (
+            'Error: please use executor "processpool" (default) or "threadpool"'
+        )
 
 
 def query(folder, filetypes):
@@ -170,7 +179,9 @@ def query(folder, filetypes):
         "swf",
         "avchd",
     ]
-    audio_types = ["aac", "aiff", "alac", "flac", "m4a", "m4p", "mp3", "ogg", "wav"]
+    audio_types = [
+        "aac", "aiff", "alac", "flac", "m4a", "m4p", "mp3", "ogg", "wav"
+    ]
     if filetypes == "images":
         extensions = image_types
     elif filetypes == "videos":

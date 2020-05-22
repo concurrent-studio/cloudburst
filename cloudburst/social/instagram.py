@@ -61,9 +61,8 @@ def download_instagram_by_shortcode(shortcode):
     url = "https://www.instagram.com/p/{}/".format(shortcode)
     try:
         # Get data
-        data = json.loads(requests.get("{}?__a=1".format(url)).text)["graphql"][
-            "shortcode_media"
-        ]
+        data = json.loads(requests.get(
+            "{}?__a=1".format(url)).text)["graphql"]["shortcode_media"]
         if data["__typename"] == "GraphSidecar":
             # Iterate through individual media in sidecar
             for node in data["edge_sidecar_to_children"]["edges"]:
@@ -138,7 +137,6 @@ class Instagram:
     >>> print(f"Most liked post: https://www.instagram.com/p/{top_liked_post[0]} ({top_liked_post[1]} likes)")
     >>> print(f"Total lifetime likes: {ig.get_lifetime_like_count()}")
     """
-
     def __init__(self, username):
         """Constructor method
 
@@ -152,7 +150,8 @@ class Instagram:
         mkdir(Path.home().joinpath(".cloudburst"))
 
         # Login user
-        self.cache_file = Path.home().joinpath(".cloudburst/instagram_session.dat")
+        self.cache_file = Path.home().joinpath(
+            ".cloudburst/instagram_session.dat")
         self.useragent = "Instagram 123.0.0.21.114 (iPhone; CPU iPhone OS 11_4 like Mac OS X; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/605.1.15"
         self.session = requests.Session()
         self.session.headers = {"user-agent": self.useragent}
@@ -168,7 +167,8 @@ class Instagram:
         # If the file can't be found
         if self.json == None:
             # Retrieve JSON profile for user
-            data = self.__a_query(username, login_required=True)["graphql"]["user"]
+            data = self.__a_query(username,
+                                  login_required=True)["graphql"]["user"]
 
             # Gather profile data
             self.username = username
@@ -179,8 +179,10 @@ class Instagram:
             self.following = data["edge_follow"]["count"]
             self.followers = data["edge_followed_by"]["count"]
             self.media_count = self.__graphql_query(
-                "d496eb541e5c789274548bf473cc553e", {"id": self.id, "first": 1,}
-            )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+                "d496eb541e5c789274548bf473cc553e", {
+                    "id": self.id,
+                    "first": 1,
+                })["data"]["user"]["edge_owner_to_timeline_media"]["count"]
             self.profile_pic = data["profile_pic_url_hd"]
             self.private = data["is_private"]
             self.verified = data["is_verified"]
@@ -231,7 +233,9 @@ class Instagram:
                 "posts": [],
                 "stories": [],
                 "highlights": [],
-                "meta": {"created at": self.timestamp},
+                "meta": {
+                    "created at": self.timestamp
+                },
             }
 
             # Get post shortcodes and fill posts with scaffold
@@ -245,9 +249,9 @@ class Instagram:
             self.__get_stories()
             self.__get_highlights()
             # Write JSON file to disk without spacing/indents
-            write_dict_to_file(
-                "{}.json".format(self.username), self.json, minimize=True
-            )
+            write_dict_to_file("{}.json".format(self.username),
+                               self.json,
+                               minimize=True)
 
         # If JSON file exists, read it into class attributes
         else:
@@ -264,18 +268,17 @@ class Instagram:
             self.private = self.json["profile"]["private"]
             self.verified = self.json["profile"]["verified"]
             self.overall_category_name = self.json["profile"]["business"][
-                "overall category"
-            ]
+                "overall category"]
             self.business_category_name = self.json["profile"]["business"][
-                "category name"
-            ]
+                "category name"]
             self.category_id = self.json["profile"]["business"]["category id"]
             self.connected_facebook = self.json["profile"]["facebook"]
 
             # Check for changes in profile, ignore unchangeable params
             changes = {}
             write_changes = True
-            data = self.__a_query(username, login_required=True)["graphql"]["user"]
+            data = self.__a_query(username,
+                                  login_required=True)["graphql"]["user"]
             if self.name != data["full_name"]:
                 self.json["profile"]["name"] = data["full_name"]
                 changes.update({"name": data["full_name"]})
@@ -286,13 +289,17 @@ class Instagram:
                 self.json["profile"]["url"] = data["external_url"]
                 changes.update({"url": data["external_url"]})
             elif self.following != data["edge_follow"]["count"]:
-                self.json["profile"]["following"] = data["edge_follow"]["count"]
+                self.json["profile"]["following"] = data["edge_follow"][
+                    "count"]
                 changes.update({"following": data["edge_follow"]["count"]})
             elif self.followers != data["edge_followed_by"]["count"]:
-                self.json["profile"]["followers"] = data["edge_followed_by"]["count"]
-                changes.update({"followers": data["edge_followed_by"]["count"]})
+                self.json["profile"]["followers"] = data["edge_followed_by"][
+                    "count"]
+                changes.update(
+                    {"followers": data["edge_followed_by"]["count"]})
             elif self.profile_pic != data["profile_pic_url_hd"]:
-                self.json["profile"]["profile_pic"] = data["profile_pic_url_hd"]
+                self.json["profile"]["profile_pic"] = data[
+                    "profile_pic_url_hd"]
                 changes.update({"profile pic": data["profile_pic_url_hd"]})
             elif self.private != data["is_private"]:
                 self.json["profile"]["private"] = data["is_private"]
@@ -302,21 +309,20 @@ class Instagram:
                 changes.update({"verified": data["is_verified"]})
             elif self.business_category_name != data["business_category_name"]:
                 self.json["profile"]["business"]["category name"] = data[
-                    "business_category_name"
-                ]
+                    "business_category_name"]
                 changes.update(
-                    {"business category name": data["business_category_name"]}
-                )
+                    {"business category name": data["business_category_name"]})
             elif self.category_id != data["category_id"]:
-                self.json["profile"]["business"]["category id"] = data["category_id"]
+                self.json["profile"]["business"]["category id"] = data[
+                    "category_id"]
                 changes.update({"business category id": data["category_id"]})
             elif self.overall_category_name != data["overall_category_name"]:
                 self.json["profile"]["business"]["overall category"] = data[
-                    "overall_category_name"
-                ]
-                changes.update(
-                    {"business overall category": data["overall_category_name"]}
-                )
+                    "overall_category_name"]
+                changes.update({
+                    "business overall category":
+                    data["overall_category_name"]
+                })
             elif self.connected_facebook != data["connected_fb_page"]:
                 self.json["profile"]["facebook"] = data["connected_fb_page"]
                 changes.update({"facebook": data["connected_fb_page"]})
@@ -326,40 +332,46 @@ class Instagram:
 
             # If changes are detected, write them to JSON file
             if write_changes:
-                self.json["profile"]["changes"].update({self.timestamp: changes})
-                write_dict_to_file(
-                    "{}.json".format(self.username), self.json, minimize=True
-                )
+                self.json["profile"]["changes"].update(
+                    {self.timestamp: changes})
+                write_dict_to_file("{}.json".format(self.username),
+                                   self.json,
+                                   minimize=True)
 
             # Check if number of recorded posts are equivalent to number of posted posts
-            if (
-                len(self.json["posts"])
-                != self.__graphql_query(
-                    "d496eb541e5c789274548bf473cc553e", {"id": self.id, "first": 1,}
-                )["data"]["user"]["edge_owner_to_timeline_media"]["count"]
-            ):
+            if (len(self.json["posts"]) != self.__graphql_query(
+                    "d496eb541e5c789274548bf473cc553e",
+                {
+                    "id": self.id,
+                    "first": 1,
+                })["data"]["user"]["edge_owner_to_timeline_media"]["count"]):
                 # Currently recorded posts
                 self.recorded_list = [
-                    post["shortcode"] for post in self.json["posts"] if post is not None
+                    post["shortcode"] for post in self.json["posts"]
+                    if post is not None
                 ]
                 # Udpate shortcode list
                 self.shortcode_list = self.__get_post_shortcodes()
                 # Add shortcodes to json["posts"] and write to disk
                 self.__build_post_scaffold()
             else:
-                self.shortcode_list = [post["shortcode"] for post in self.json["posts"]]
+                self.shortcode_list = [
+                    post["shortcode"] for post in self.json["posts"]
+                ]
 
             self.__populate_post_scaffold()
             # Get story list
-            self.story_ids = [story_id["id"] for story_id in self.json["stories"]]
+            self.story_ids = [
+                story_id["id"] for story_id in self.json["stories"]
+            ]
             self.highlight_ids = [
                 highlight_id["id"] for highlight_id in self.json["highlights"]
             ]
             self.__get_stories()
             self.__get_highlights()
-            write_dict_to_file(
-                "{}.json".format(self.username), self.json, minimize=True
-            )
+            write_dict_to_file("{}.json".format(self.username),
+                               self.json,
+                               minimize=True)
         self.__cache_session()
 
     ########################
@@ -370,9 +382,8 @@ class Instagram:
         cached_session_found = False
         if self.cache_file.exists():
             # Only load file if it was modified less than an hour ago
-            if (
-                datetime.now() - datetime.fromtimestamp(self.cache_file.stat().st_mtime)
-            ).seconds < 3600:
+            if (datetime.now() - datetime.fromtimestamp(
+                    self.cache_file.stat().st_mtime)).seconds < 3600:
                 with open(self.cache_file, "rb") as f:
                     # Load session from file
                     self.session = pickle.load(f)
@@ -386,34 +397,40 @@ class Instagram:
             self.login_password = getpass("Password: ")
 
             # Attempt login
-            self.session.headers.update(
-                {"Referer": "https://www.instagram.com/", "user-agent": self.useragent}
-            )
-            self.session.headers.update(
-                {
-                    "X-CSRFToken": self.session.get(
-                        "https://www.instagram.com/"
-                    ).cookies["csrftoken"]
-                }
-            )
+            self.session.headers.update({
+                "Referer": "https://www.instagram.com/",
+                "user-agent": self.useragent
+            })
+            self.session.headers.update({
+                "X-CSRFToken":
+                self.session.get(
+                    "https://www.instagram.com/").cookies["csrftoken"]
+            })
             login = self.session.post(
                 "https://www.instagram.com/accounts/login/ajax/",
-                data={"username": self.login_username, "password": self.login_password},
+                data={
+                    "username": self.login_username,
+                    "password": self.login_password
+                },
                 allow_redirects=True,
             )
-            self.session.headers.update({"X-CSRFToken": login.cookies["csrftoken"]})
+            self.session.headers.update(
+                {"X-CSRFToken": login.cookies["csrftoken"]})
             self.cookies = login.cookies
             login_response = json.loads(login.text)
 
             # Check if login succeeded
-            if login_response.get("authenticated") and login.status_code == 200:
+            if login_response.get(
+                    "authenticated") and login.status_code == 200:
                 self.is_logged_in = True
                 self.session.headers.update({"user-agent": self.useragent})
             # Display errors if necessary
             else:
                 if "two_factor_required" in login_response:
                     # This needs to be done
-                    print("Error: two-factor authentication not yet implemented.")
+                    print(
+                        "Error: two-factor authentication not yet implemented."
+                    )
                 elif "error_type" in login_response:
                     error_type = login_response["error_type"]
                     if error_type == "rate_limit_error":
@@ -428,7 +445,8 @@ class Instagram:
                             f"Error: login failed for user @{self.login_username} with error {error_type}"
                         )
                 else:
-                    print(f"Error: login failed for user @{self.login_username}")
+                    print(
+                        f"Error: login failed for user @{self.login_username}")
                 print("Exiting program")
                 quit(0)
 
@@ -467,8 +485,8 @@ class Instagram:
             Tuple or url and filename to deconstruct
         """
         # Check to ensure content isn't gone from Facebook's CDN
-        if requests.get(tuple[0]).text != "Gone":
-            download(tuple[0], tuple[1])
+        # if requests.get(tuple[0]).text != "Gone":
+        download(tuple[0], tuple[1])
 
     @staticmethod
     def __media_preview_to_image(media_preview):
@@ -488,18 +506,15 @@ class Instagram:
         preview_binary = [i for i in a2b_base64(media_preview)]
         # Common header to bytes
         header = [
-            i
-            for i in list(
+            i for i in list(
                 a2b_base64(
                     "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsaGikdKUEmJkFCLy8vQkc/Pj4/R0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0cBHSkpNCY0PygoP0c/NT9HR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR//AABEIABQAKgMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AA=="
-                )
-            )
+                ))
         ]
         header[162], header[160] = preview_binary[1:3]
         # Encode data to bytes from ISO-8859-1 codec
-        data = "".join([chr(i) for i in header + preview_binary[3:]]).encode(
-            "iso-8859-1"
-        )
+        data = "".join([chr(i) for i in header + preview_binary[3:]
+                        ]).encode("iso-8859-1")
         # Create PIL Image from data
         image = Image.open(BytesIO(data))
 
@@ -578,10 +593,14 @@ class Instagram:
                 # If unsuccessful, try again, up to max attempt number
                 query_count += 1
                 if query_count <= max_queries_allowed + 1:
-                    print(f"Error: couldn't retrieve data @ {query_url}. Retrying.")
+                    print(
+                        f"Error: couldn't retrieve data @ {query_url}. Retrying."
+                    )
                     __a_query(query_url)
                 else:
-                    print(f"Error: couldn't retrieve data @ {query_url}. Passing.")
+                    print(
+                        f"Error: couldn't retrieve data @ {query_url}. Passing."
+                    )
                     return None
 
         # Form query url and exexcute query
@@ -590,7 +609,7 @@ class Instagram:
 
         return data
 
-    def __graphql_query(self, hash, variables):
+    def __graphql_query(self, hash, variables, login_required=False):
         """ Run a query through Instagram's GraphQL infrastructure 
 
         Parameters
@@ -608,17 +627,19 @@ class Instagram:
         sleep_time = 0
         # Construct GraphQL query url from query has and variables to pass
         query_url = "https://www.instagram.com/graphql/query/?{}".format(
-            urlencode(
-                {
-                    "query_hash": hash,
-                    "variables": json.dumps(variables, separators=(",", ":")),
-                }
-            )
-        )
+            urlencode({
+                "query_hash":
+                hash,
+                "variables":
+                json.dumps(variables, separators=(",", ":")),
+            }))
 
         # Actually execute the query here, retry method
-        def _graphql_query(url):
-            data = json.loads(self.session.get(query_url).text)
+        def _graphql_query(url, sleep_time):
+            if login_required:
+                data = json.loads(self.session.get(query_url).text)
+            else:
+                data = json.loads(requests.get(query_url).text)
             if data["status"] == "ok":
                 return data
             else:
@@ -627,14 +648,17 @@ class Instagram:
                     f"Instagram GraphQL query failed. Sleeping for {sleep_time} seconds before retrying."
                 )
                 sleep(sleep_time)
-                _graphql_query(url)
+                _graphql_query(url, sleep_time)
 
         try:
             # If successful, load data
-            data = _graphql_query(query_url)
+            data = _graphql_query(query_url, sleep_time)
         except:
             # If unsuccessful, return None
             print(f"Error with query {query_url}")
+            # Try again
+            sleep(30)
+            data = _graphql_query(query_url, sleep_time)
             data = None
         return data
 
@@ -667,28 +691,31 @@ class Instagram:
                 # Query GraphQL for Instagram shortcodes (max 50 at a time, can't parallelize)
                 response = self.__graphql_query(
                     "d496eb541e5c789274548bf473cc553e",
-                    {"id": self.id, "first": 50, "after": end_cursor},
+                    {
+                        "id": self.id,
+                        "first": 50,
+                        "after": end_cursor
+                    },
                 )
                 if response:
                     # Record end cursor for next query if necessary
                     end_cursor = response["data"]["user"][
-                        "edge_owner_to_timeline_media"
-                    ]["page_info"]["end_cursor"]
+                        "edge_owner_to_timeline_media"]["page_info"][
+                            "end_cursor"]
                     # Iterate through each post in the query
                     for node in response["data"]["user"][
-                        "edge_owner_to_timeline_media"
-                    ]["edges"]:
+                            "edge_owner_to_timeline_media"]["edges"]:
                         # Grab shortcode, if not in list, add it to the list and increment count
                         shortcode = node["node"]["shortcode"]
                         if shortcode not in shortcode_list:
                             shortcode_list.append(shortcode)
                             if progress_bar:
                                 print(
-                                    " Retreived {}% ({}/{}) of @{}'s posts".format(
+                                    " Retreived {}% ({}/{}) of @{}'s posts".
+                                    format(
                                         round(
-                                            100
-                                            * len(shortcode_list)
-                                            / self.media_count,
+                                            100 * len(shortcode_list) /
+                                            self.media_count,
                                             2,
                                         ),
                                         len(shortcode_list),
@@ -718,7 +745,6 @@ class Instagram:
 
     def __populate_post_scaffold(self, progress_bar=True):
         """Fill JSON with user content"""
-
         def __get_media(node):
             """ Get various pieces of media-specific from a post """
             # Media dict
@@ -744,13 +770,11 @@ class Instagram:
                 tagged_users = []
                 for tagged in node["edge_media_to_tagged_user"]["edges"]:
                     node = tagged["node"]
-                    tagged_users.append(
-                        {
-                            "username": node["user"]["username"],
-                            "x": node["x"],
-                            "y": node["y"],
-                        }
-                    )
+                    tagged_users.append({
+                        "username": node["user"]["username"],
+                        "x": node["x"],
+                        "y": node["y"],
+                    })
                 if tagged_users != []:
                     media.update({"tagged": tagged_users})
             except Exception as e:
@@ -767,8 +791,8 @@ class Instagram:
                 try:
                     # Get JSON data
                     response = self.__a_query(
-                        "p/{}".format(shortcode), login_required=False
-                    )["graphql"]["shortcode_media"]
+                        "p/{}".format(shortcode),
+                        login_required=False)["graphql"]["shortcode_media"]
                     # Typename
                     try:
                         typename = response["__typename"]
@@ -780,7 +804,8 @@ class Instagram:
                         media = []
                         if typename == "GraphSidecar":
                             # Iterate through individual media in sidecar
-                            for node in response["edge_sidecar_to_children"]["edges"]:
+                            for node in response["edge_sidecar_to_children"][
+                                    "edges"]:
                                 media.append(__get_media(node["node"]))
                         else:
                             media.append(__get_media(response))
@@ -789,48 +814,43 @@ class Instagram:
                         pass
                     # Caption
                     try:
-                        post.update(
-                            {
-                                "caption": response["edge_media_to_caption"]["edges"][
-                                    0
-                                ]["node"]["text"]
-                            }
-                        )
+                        post.update({
+                            "caption":
+                            response["edge_media_to_caption"]["edges"][0]
+                            ["node"]["text"]
+                        })
                     except:
                         pass
                     # Like count
                     try:
-                        post.update(
-                            {"likes": response["edge_media_preview_like"]["count"]}
-                        )
+                        post.update({
+                            "likes":
+                            response["edge_media_preview_like"]["count"]
+                        })
                     except:
                         pass
                     # Comments count
                     try:
-                        post.update(
-                            {
-                                "comments": response["edge_media_to_parent_comment"][
-                                    "count"
-                                ]
-                            }
-                        )
+                        post.update({
+                            "comments":
+                            response["edge_media_to_parent_comment"]["count"]
+                        })
                     except:
                         pass
                     # Dimensions
                     try:
-                        post.update(
-                            {
-                                "dimensions": {
-                                    "width": response["dimensions"]["width"],
-                                    "height": response["dimensions"]["height"],
-                                }
+                        post.update({
+                            "dimensions": {
+                                "width": response["dimensions"]["width"],
+                                "height": response["dimensions"]["height"],
                             }
-                        )
+                        })
                     except:
                         pass
                     # Timestamp
                     try:
-                        post.update({"timestamp": response["taken_at_timestamp"]})
+                        post.update(
+                            {"timestamp": response["taken_at_timestamp"]})
                     except:
                         pass
                     # Location
@@ -847,25 +867,20 @@ class Instagram:
                     # Accessibility caption
                     try:
                         if response["accessibility_caption"] is not None:
-                            post.update(
-                                {
-                                    "accessibility caption": response[
-                                        "accessibility_caption"
-                                    ]
-                                }
-                            )
+                            post.update({
+                                "accessibility caption":
+                                response["accessibility_caption"]
+                            })
                     except:
                         pass
                     # Write changes to JSON file
-                    write_dict_to_file(
-                        "{}.json".format(self.username), self.json, minimize=True
-                    )
+                    write_dict_to_file("{}.json".format(self.username),
+                                       self.json,
+                                       minimize=True)
                 except:
                     print(
-                        "Error gathering data for post https://www.instagram.com/p/{}".format(
-                            shortcode
-                        )
-                    )
+                        "Error gathering data for post https://www.instagram.com/p/{}"
+                        .format(shortcode))
                     pass
             else:
                 pass
@@ -919,10 +934,12 @@ class Instagram:
             for links in story_item["tappable_objects"]:
                 if links["__typename"] == "GraphTappableFeedMedia":
                     story_shortcode = links["media"]["shortcode"]
-                    linked.append(f"https://www.instagram.com/p/{story_shortcode}")
+                    linked.append(
+                        f"https://www.instagram.com/p/{story_shortcode}")
                 elif links["__typename"] == "GraphTappableMention":
                     story_username = links["username"]
-                    linked.append(f"https://www.instagram.com/{story_username}")
+                    linked.append(
+                        f"https://www.instagram.com/{story_username}")
             story.update({"linked": linked})
         except:
             pass
@@ -996,13 +1013,13 @@ class Instagram:
             # Reel cover media
             try:
                 highlight_reel.update(
-                    {"cover": highlight_reel["cover_media"]["thumbnail_src"]}
-                )
+                    {"cover": highlight_reel["cover_media"]["thumbnail_src"]})
             except:
                 pass
             # Reel content
             try:
-                highlight_reel.update({"content": self.__get_highlight_reel(hr["id"])})
+                highlight_reel.update(
+                    {"content": self.__get_highlight_reel(hr["id"])})
             except:
                 pass
 
@@ -1054,12 +1071,11 @@ class Instagram:
                     try:
                         # Create filename
                         filename = "{}/{}_{}_preview.jpg".format(
-                            output_dir, shortcode, m["id"]
-                        )
+                            output_dir, shortcode, m["id"])
                         # Append filename and media preview image
                         previews.append(
-                            (filename, self.__media_preview_to_image(m["preview"]))
-                        )
+                            (filename,
+                             self.__media_preview_to_image(m["preview"])))
                     except:
                         pass
             else:
@@ -1128,7 +1144,8 @@ class Instagram:
         for highlights in self.json["highlights"]:
             if "content" in highlights:
                 for story in highlights["content"]:
-                    ext = "mp4" if story["typename"] == "GraphStoryVideo" else "jpg"
+                    ext = "mp4" if story[
+                        "typename"] == "GraphStoryVideo" else "jpg"
                     filename = "{}_highlight.{}".format(story["id"], ext)
                     filename = Path(output_dir).joinpath(filename)
                     highlights_list.append((story["content"], filename))
@@ -1225,10 +1242,8 @@ class Instagram:
             return self.shortcode_list[number]
         else:
             print(
-                "Error: latest post is {}, please enter number either lesser or equal to this post.".format(
-                    count
-                )
-            )
+                "Error: latest post is {}, please enter number either lesser or equal to this post."
+                .format(count))
             return None
 
     def search_captions_by_keyword(self, keyword):
@@ -1280,9 +1295,9 @@ class Instagram:
                 pass
 
         # Return set of tagged users (remove duplicates)
-        tagged_users = sorted(
-            tagged_users.items(), key=lambda x: len(x[1]), reverse=True
-        )
+        tagged_users = sorted(tagged_users.items(),
+                              key=lambda x: len(x[1]),
+                              reverse=True)
         return tagged_users
 
     def get_tagged_users_in_captions(self):
@@ -1308,9 +1323,9 @@ class Instagram:
                                 else:
                                     tagged_users[word] = [shortcode]
         # Return sorted tagged users in captions
-        tagged_users = sorted(
-            tagged_users.items(), key=lambda x: len(x[1]), reverse=True
-        )
+        tagged_users = sorted(tagged_users.items(),
+                              key=lambda x: len(x[1]),
+                              reverse=True)
         return tagged_users
 
     def get_hashtags(self):
@@ -1339,7 +1354,9 @@ class Instagram:
                                     hashtags.update({hashtag: [shortcode]})
 
         # Return hashtags list
-        hashtags = sorted(hashtags.items(), key=lambda x: len(x[1]), reverse=True)
+        hashtags = sorted(hashtags.items(),
+                          key=lambda x: len(x[1]),
+                          reverse=True)
         return hashtags
 
     def get_posts_by_like_count(self):
