@@ -1,0 +1,4 @@
+https://www.learnopencv.com/convolutional-neural-network-based-image-colorization-using-opencv/?ck_subscriber_id=826178723
+https://www.learnopencv.com/deep-learning-based-text-recognition-ocr-using-tesseract-and-opencv/?ck_subscriber_id=826178723
+https://www.learnopencv.com/multi-person-pose-estimation-in-opencv-using-openpose/?ck_subscriber_id=826178723
+

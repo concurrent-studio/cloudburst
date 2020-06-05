@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Scrape Instagram through its GraphQL API """
+# Import system packages
 import json
 import pickle
 import requests
@@ -11,15 +12,10 @@ from pathlib import Path
 from string import ascii_letters, digits, punctuation
 from time import time, sleep
 from urllib.parse import urlencode
+
+# Import external packages
+import jafa
 from PIL import Image
-from cloudburst.core import (
-    concurrent,
-    write_dict_to_file,
-    get_dict_from_file,
-    mkdir,
-    query,
-)
-from cloudburst.vision import download
 
 __all__ = ["Instagram", "download_instagram_by_shortcode"]
 
@@ -27,17 +23,14 @@ __all__ = ["Instagram", "download_instagram_by_shortcode"]
 def download_instagram_by_shortcode(shortcode):
     """Download a post from its shortcode
 
-    Parameters
-    ----------
-    shortcode : str
-        shortcode from an Instagram post; see glossary for definition
+    Args:
+        shortcode (str): shortcode from an Instagram post; see glossary for definition
 
-    Examples
-    --------
-    Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
+    Examples:
+        Download the Instagram post "https://www.instagram.com/p/B-X0DDrj30s/"
 
-    >>> from cloudburst import social as cbs
-    >>> cbs.download_instagram_by_shortcode("B-X0DDrj30s")
+        >>> from cloudburst import social as cbs
+        >>> cbs.download_instagram_by_shortcode("B-X0DDrj30s")
     """
     def __download_media(shortcode, node):
         """ Download a post's media """
@@ -47,13 +40,13 @@ def download_instagram_by_shortcode(shortcode):
             content_url = node["display_resources"][-1]["src"]
             # Check to ensure content isn't gone from Facebook's CDN
             if requests.get(content_url).text != "Gone":
-                download(content_url, "{}.jpg".format(filename))
+                jafa.download(content_url, "{}.jpg".format(filename))
         elif node["__typename"] == "GraphVideo":
             content_url = node["video_url"]
             # Check to ensure content isn't gone from Facebook's CDN
             if requests.get(content_url).text != "Gone":
-                download(content_url, "{}.jpg".format(filename))
-            download(content_url, "{}.mp4".format(filename))
+                jafa.download(content_url, "{}.jpg".format(filename))
+            jafa.download(content_url, "{}.mp4".format(filename))
         else:
             pass
 
@@ -77,77 +70,56 @@ def download_instagram_by_shortcode(shortcode):
 class Instagram:
     """Scrape the data of an Instagram User
 
-    Attributes
-    ----------
-    username : str
-        User's username
-    id : str
-        User's unique ID
-    name : str
-        User's full name
-    biography : str
-        User's biography
-    url : str
-        Linked site under user's biography
-    followers : int
-        Number of accounts following the user
-    following : int
-        Number of accounts user is following
-    business_category_name : str
-        Name of business category
-    category_id : str
-        ID of business category
-    overall_category_name : str
-        Name of overall category
-    is_private : bool
-        Is the account private
-    is_verified : bool
-        Is the account verified
-    profile_pic_url_hd : str
-        URL to high defintion profile picture
-    connected_fb_page : str
-        Connected Facebook page
-    media_count : int
-        Number of posts by user
-    timestamp : int
-        Current UNIX epoch timestamp
-    shortcode_list : list
-        List of all shortcodes for a user
+    Attributes: 
+        username (str): User's username
+        id (str): User's unique ID
+        name (str): User's full name
+        biography (str): User's biography
+        url (str): Linked site under user's biography
+        followers (int): Number of accounts following the user
+        following (int): Number of accounts user is following
+        business_category_name (str): Name of business category
+        category_id (str): ID of business category
+        overall_category_name (str): Name of overall category
+        is_private (bool): Is the account private
+        is_verified (bool): Is the account verified
+        profile_pic_url_hd (str): URL to high defintion profile picture
+        connected_fb_page (str): Connected Facebook page
+        media_count (int): Number of posts by user
+        timestamp (int): Current UNIX epoch timestamp
+        shortcode_list (list): List of all shortcodes for a user
 
-    Examples
-    --------
-    Contruct new object for @denimtears, gather media, do some analytics
-    
-    >>> from cloudburst import social as cbs
-    >>> ig = cbs.Instagram("denimtears") # Build pseudo-database for user
-    >>> ig.download_profile_picture()
-    >>> ig.get_previews()
-    >>> ig.download_stories()
-    >>> ig.download_highlights()
-    >>> ig.download_thumbnails()
-    >>> ig.download_posts()
-    >>> print(f"First post: https://www.instagram.com/p/{ig.get_post_by_number(-1)}")
-    >>> print("Querying for keyword \"acyde\":")
-    >>> for shortcode, _ in ig.search_captions_by_keyword("acyde"):
-    >>>     print(f"\thttps://www.instagram.com/p/{shortcode}")
-    >>> print(f"Top tagged user: {ig.get_tagged_users()[0][0]}")
-    >>> print(f"Top tagged users in captions: {ig.get_tagged_users_in_captions()[0][0]}")
-    >>> print(f"Top hashtag: {ig.get_hashtags()[0][0]}")
-    >>> top_liked_post = ig.get_posts_by_like_count()[0]
-    >>> print(f"Most liked post: https://www.instagram.com/p/{top_liked_post[0]} ({top_liked_post[1]} likes)")
-    >>> print(f"Total lifetime likes: {ig.get_lifetime_like_count()}")
+    Examples:
+        Contruct new object for @denimtears, gather media, do some analytics
+        
+        >>> from cloudburst import social as cbs
+        >>> ig = cbs.Instagram("denimtears") # Build pseudo-database for user
+        >>> ig.download_profile_picture()
+        >>> ig.get_previews()
+        >>> ig.download_stories()
+        >>> ig.download_highlights()
+        >>> ig.download_thumbnails()
+        >>> ig.download_posts()
+        >>> print(f"First post: https://www.instagram.com/p/{ig.get_post_by_number(-1)}")
+        >>> print("Querying for keyword \"acyde\":")
+        >>> for shortcode, _ in ig.search_captions_by_keyword("acyde"):
+        >>>     print(f"\thttps://www.instagram.com/p/{shortcode}")
+        >>> print(f"Top tagged user: {ig.get_tagged_users()[0][0]}")
+        >>> print(f"Top tagged users in captions: {ig.get_tagged_users_in_captions()[0][0]}")
+        >>> print(f"Top hashtag: {ig.get_hashtags()[0][0]}")
+        >>> top_liked_post = ig.get_posts_by_like_count()[0]
+        >>> print(f"Most liked post: https://www.instagram.com/p/{top_liked_post[0]} ({top_liked_post[1]} likes)")
+        >>> print(f"Total lifetime likes: {ig.get_lifetime_like_count()}")
     """
     def __init__(self, username):
         """Constructor method
 
-        Parameters
-        ----------
-        username : str
-            Any Instagram user's username to query
+        Args:
+            username (str): Any Instagram user's username to query
         """
         # Create ~/.cloudubrst directory if necessary
         # Used to store session
-        mkdir(Path.home().joinpath(".cloudburst"))
+        jafa.mkdir(Path.home().joinpath(".cloudburst"))
 
         # Login user
         self.cache_file = Path.home().joinpath(
@@ -161,7 +133,7 @@ class Instagram:
         self.__login()
 
         # Try to joad JSON file for user
-        self.json = get_dict_from_file("{}.json".format(username))
+        self.json = jafa.get_dict_from_file("{}.json".format(username))
         # Get current UNIX epoch timestamp for record keeping purposes
         self.timestamp = int(time())
         # If the file can't be found
@@ -249,9 +221,9 @@ class Instagram:
             self.__get_stories()
             self.__get_highlights()
             # Write JSON file to disk without spacing/indents
-            write_dict_to_file("{}.json".format(self.username),
-                               self.json,
-                               minimize=True)
+            jafa.write_dict_to_file("{}.json".format(self.username),
+                                    self.json,
+                                    minimize=True)
 
         # If JSON file exists, read it into class attributes
         else:
@@ -334,9 +306,9 @@ class Instagram:
             if write_changes:
                 self.json["profile"]["changes"].update(
                     {self.timestamp: changes})
-                write_dict_to_file("{}.json".format(self.username),
-                                   self.json,
-                                   minimize=True)
+                jafa.write_dict_to_file("{}.json".format(self.username),
+                                        self.json,
+                                        minimize=True)
 
             # Check if number of recorded posts are equivalent to number of posted posts
             if (len(self.json["posts"]) != self.__graphql_query(
@@ -369,9 +341,9 @@ class Instagram:
             ]
             self.__get_stories()
             self.__get_highlights()
-            write_dict_to_file("{}.json".format(self.username),
-                               self.json,
-                               minimize=True)
+            jafa.write_dict_to_file("{}.json".format(self.username),
+                                    self.json,
+                                    minimize=True)
         self.__cache_session()
 
     ########################
@@ -479,28 +451,22 @@ class Instagram:
     def __download_tuple(tuple):
         """ Helper method/workaround to allow for concurrent downloading of images 
         
-        Parameters
-        ----------
-        tuple : tuple
-            Tuple or url and filename to deconstruct
+        Args:
+            tuple (tuple): Tuple or url and filename to deconstruct
         """
         # Check to ensure content isn't gone from Facebook's CDN
         # if requests.get(tuple[0]).text != "Gone":
-        download(tuple[0], tuple[1])
+        jafa.download(tuple[0], tuple[1])
 
     @staticmethod
     def __media_preview_to_image(media_preview):
         """ Transform a media_preview string into a PIL Image through Instagram's proprietary compression algorithm 
     
-        Parameters
-        ----------
-        media_preview : string
-            Instagram media preview string
+        Args:
+            media_preview (str): Instagram media preview string
 
-        Returns
-        -------
-        image : Image
-            Turn media preview string into PIL Image
+        Returns:
+            image (Image): Turn media preview string into PIL Image
         """
         # Base64 to bytes
         preview_binary = [i for i in a2b_base64(media_preview)]
@@ -524,16 +490,11 @@ class Instagram:
     def __strip_hashtag(hashtag):
         """ Remove extraneous octothorpes and other punctuation from hashtags 
         
-        Parameters
-        ----------
-        hashtag : string
-            Hashtag to strip
+        Args:
+            hashtag (str): Hashtag to strip
 
-        Returns
-        -------
-        hashtag : string
-            Properly stripped hashtag
-        """
+        Returns:
+            hashtag (str): Properly stripped hashtag """
         try:
             while hashtag[1] == "#":
                 hashtag = hashtag[1:]
@@ -551,15 +512,11 @@ class Instagram:
     def __strip_username(username):
         """ Remove extraneous octothorpes and other punctuation from hashtags 
         
-        Parameters
-        ----------
-        username : string
-            Username to strip
+        Args:
+            username (str): Username to strip
 
-        Returns
-        -------
-        username : string
-            Properly stripped username
+        Returns:
+            username (str): Properly stripped username
         """
         try:
             while username[-1] not in list(ascii_letters + digits + "._"):
@@ -574,10 +531,8 @@ class Instagram:
     def __a_query(self, query, login_required=True):
         """ Run a query through Instagram's "?__a=1" initial page-loading method 
 
-        Returns
-        -------
-        data : dict
-            JSON data from ?__a=1 query
+        Returns:
+            data (dict): JSON data from ?__a=1 query
         """
         query_count = 0
         max_queries_allowed = 2
@@ -612,17 +567,12 @@ class Instagram:
     def __graphql_query(self, hash, variables, login_required=False):
         """ Run a query through Instagram's GraphQL infrastructure 
 
-        Parameters
-        ----------
-        hash : string
-            GraphQL hash for query
-        variables : dict
-            Dictionary of variables to include in query
+        Args:
+            hash (str): GraphQL hash for query
+            variables (dict): Dictionary of variables to include in query
 
-        Returns
-        -------
-        data : dict
-            JSON data from GraphQL query
+        Returns:
+            data (dict): JSON data from GraphQL query
         """
         sleep_time = 0
         # Construct GraphQL query url from query has and variables to pass
@@ -665,17 +615,12 @@ class Instagram:
     def __get_post_shortcodes(self, old_list=None, progress_bar=True):
         """Get shortcodes for all posts by a user
         
-        Parameters
-        ----------
-        old_list : list
-            An old list of shortcodes, so not as to re-run unnecessary tasks
-        progress_bar : bool
-            Display progress of shortcode retrieval
+        Args:
+            old_list (list): An old list of shortcodes, so not as to re-run unnecessary tasks
+            progress_bar (bool): Display progress of shortcode retrieval
 
-        Returns
-        -------
-        shortcode_list : list
-            List of all shortcodes for a user
+        Returns:
+            shortcode_list (list): List of all shortcodes for a user
         """
         # Load previous list if applicable, otherwise initialize empty list
         if old_list != None:
@@ -874,9 +819,9 @@ class Instagram:
                     except:
                         pass
                     # Write changes to JSON file
-                    write_dict_to_file("{}.json".format(self.username),
-                                       self.json,
-                                       minimize=True)
+                    jafa.write_dict_to_file("{}.json".format(self.username),
+                                            self.json,
+                                            minimize=True)
                 except:
                     print(
                         "Error gathering data for post https://www.instagram.com/p/{}"
@@ -886,7 +831,7 @@ class Instagram:
                 pass
 
         # Concurrently build post json from scaffold
-        concurrent(
+        jafa.concurrent(
             __build_post_from_scaffold,
             self.json["posts"],
             progress_bar=progress_bar,
@@ -992,7 +937,7 @@ class Instagram:
         response = self.__graphql_query(
             "ad99dd9d3646cc3c0dda65debcd266a7",
             {
-                "user_id": str(self.id),
+                "user_id" (str): (self.id),
                 "include_reel": True,
                 "include_highlight_reels": True,
             },
@@ -1044,23 +989,19 @@ class Instagram:
     #################################
     def download_profile_picture(self):
         """ Download an Instagram user's profile picure in its highest quality """
-        download(self.profile_pic, "{}.jpg".format(self.username))
+        jafa.download(self.profile_pic, "{}.jpg".format(self.username))
 
     def get_previews(self, mode="save", output_dir="previews"):
         """Get all media previews for a user
 
-        Parameters
-        ----------
-        mode : str
-            Determine whether media preview images should be shown or saved
+        Args:
+            mode (str): Determine whether media preview images should be shown or saved
 
-        Returns
-        -------
-        results : list
-            List of all media previews as numpy arrays
+        Returns:
+            results (list): List of all media previews as numpy arrays
         """
         # Make directory is necessary
-        mkdir(output_dir)
+        jafa.mkdir(output_dir)
 
         # Get media previews
         previews = []
@@ -1099,15 +1040,12 @@ class Instagram:
     def download_stories(self, output_dir="", progress_bar=True):
         """ Download all stories from an Instagram user in their highest quality
 
-        Parameters
-        ----------
-        output_dir : str
-            Path to directory where stories should be saved
-        progress_bar : bool
-            Display progress of post download
+        Args:
+            output_dir (str): Path to directory where stories should be saved
+            progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        mkdir(output_dir)
+        jafa.mkdir(output_dir)
         # Fill stories list with filenames and url's to hd thumbniails
         stories_list = []
         for story in self.json["stories"]:
@@ -1120,7 +1058,7 @@ class Instagram:
                 pass
 
         # Concurently download images
-        concurrent(
+        jafa.concurrent(
             self.__download_tuple,
             stories_list,
             progress_bar=progress_bar,
@@ -1130,15 +1068,12 @@ class Instagram:
     def download_highlights(self, output_dir="", progress_bar=True):
         """ Download all highlights from an Instagram user in their highest quality
 
-        Parameters
-        ----------
-        output_dir : str
-            Path to directory where highlights should be saved
-        progress_bar : bool
-            Display progress of post download
+        Args:
+            output_dir (str): Path to directory where highlights should be saved
+            progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        mkdir(output_dir)
+        jafa.mkdir(output_dir)
         # Fill highlights list with filenames and url's to hd thumbniails
         highlights_list = []
         for highlights in self.json["highlights"]:
@@ -1153,7 +1088,7 @@ class Instagram:
                 pass
 
         # Concurently download images
-        concurrent(
+        jafa.concurrent(
             self.__download_tuple,
             highlights_list,
             progress_bar=progress_bar,
@@ -1163,15 +1098,12 @@ class Instagram:
     def download_thumbnails(self, output_dir="", progress_bar=True):
         """ Download all posts from an Instagram user in their highest quality
 
-        Parameters
-        ----------
-        output_dir : str
-            Path to directory where thumbnails should be saved
-        progress_bar : bool
-            Display progress of post download
+        Args:
+            output_dir (str): Path to directory where thumbnails should be saved
+            progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        mkdir(output_dir)
+        jafa.mkdir(output_dir)
         # Fill thumbnail list with filenames and url's to hd thumbniails
         thumbnail_list = []
         for post in self.json["posts"]:
@@ -1185,7 +1117,7 @@ class Instagram:
                 pass
 
         # Concurently download images
-        concurrent(
+        jafa.concurrent(
             self.__download_tuple,
             thumbnail_list,
             progress_bar=progress_bar,
@@ -1195,15 +1127,12 @@ class Instagram:
     def download_posts(self, output_dir="", progress_bar=True):
         """Download all posts from an Instagram user in their highest quality
 
-        Parameters
-        ----------
-        output_dir : str
-            Path to directory where posts should be saved
-        progress_bar : bool
-            Display progress of post download
+        Args:
+            output_dir (str): Path to directory where posts should be saved
+            progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        mkdir(output_dir)
+        jafa.mkdir(output_dir)
         # Fill content list with filenames and url's to hd content
         content_list = []
         for post in self.json["posts"]:
@@ -1214,7 +1143,7 @@ class Instagram:
                 content_list.append((m["content"], filename))
 
         # Concurently download images/videos
-        concurrent(
+        jafa.concurrent(
             self.__download_tuple,
             content_list,
             progress_bar=progress_bar,
@@ -1227,15 +1156,11 @@ class Instagram:
     def get_post_by_number(self, number):
         """ Get a post shortcode by number
 
-        Parameters
-        ----------
-        number : str
-            Number of post
+        Args:
+            number (str): Number of post
 
-        Returns
-        -------
-        shortcode : string
-            Shortcode correlating with post
+        Returns:
+            shortcode (str): Shortcode correlating with post
         """
         # Ensure count is <= media count
         if number <= self.json["profile"]["media count"]:
@@ -1249,15 +1174,11 @@ class Instagram:
     def search_captions_by_keyword(self, keyword):
         """ Find all captions containing a queried keyword
 
-        Parameters
-        ----------
-        keyword : str
-            keyword to search captions for
+        Args:
+            keyword (str): keyword to search captions for
 
-        Returns
-        -------
-        captions : list
-            List of matches of form (shortcode, caption)
+        Returns:
+            captions (list): List of matches of form (shortcode, caption)
         """
         captions = []
         for post in self.json["posts"]:
@@ -1271,10 +1192,8 @@ class Instagram:
     def get_tagged_users(self):
         """ Get list of all users tagged in post
 
-        Returns
-        -------
-        tagged_users : list
-            List of all tagged users
+        Returns:
+            tagged_users (list): List of all tagged users
         """
         tagged_users = {}
         for post in self.json["posts"]:
@@ -1303,10 +1222,8 @@ class Instagram:
     def get_tagged_users_in_captions(self):
         """ Get list of all users tagged in captions
 
-        Returns
-        -------
-        tagged_users : list
-            List of all tagged users in captions
+        Returns:
+            tagged_users (list): List of all tagged users in captions
         """
         tagged_users = {}
         for post in self.json["posts"]:
@@ -1331,10 +1248,8 @@ class Instagram:
     def get_hashtags(self):
         """ Get all hashtags (and the posts that use them) from a user, sorted by frequency 
         
-        Returns
-        -------
-        hashtags : list
-            Sorted list of all hashtags by post frequency of form (hashtag, [shortcode(s)])
+        Returns:
+            hashtags (list): Sorted list of all hashtags by post frequency of form (hashtag, [shortcode(s)])
         """
         hashtags = {}
         for post in self.json["posts"]:
@@ -1362,10 +1277,8 @@ class Instagram:
     def get_posts_by_like_count(self):
         """ Sort posts by like count
         
-        Returns
-        -------
-        likes : list
-            Sorted list of all posts by like count in form (shortcode, like count)
+        Returns:
+            likes (list): Sorted list of all posts by like count in form (shortcode, like count)
         """
         likes = []
         for post in self.json["posts"]:
@@ -1379,10 +1292,8 @@ class Instagram:
     def get_lifetime_like_count(self):
         """ Total number of likes a user has received
         
-        Returns
-        -------
-        likes : int
-            Number of total likes a user has received
+        Returns:
+            likes (int): Number of total likes a user has received
         """
         likes = self.get_posts_by_like_count()
         return sum([like_count for (shortcode, like_count) in likes])
