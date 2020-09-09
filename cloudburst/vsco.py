@@ -4,8 +4,7 @@ import os
 import requests
 from pathlib import Path
 from time import time
-from ..core import concurrent, mkdir, write_dict_to_file
-from ..vision import download
+from .utils import concurrent, mkdir, write_dict_to_file, download
 
 __all__ = ["VSCO"]
 

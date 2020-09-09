@@ -1,0 +1,17 @@
+def get_following(self):
+        """Get all users that someone is followign"""
+        following = []
+        end_cursor = ""
+        count = 0
+        while count < self.following_count:
+            response = self.__instagram_query(
+                "d04b0a864b4b54837c0d870b0e77e076",
+                {"id": self.id, "include_reel": True, "fetch_mutual": False, "first": 24, "after": end_cursor},
+            )
+            print(response)
+            # end_cursor = response["data"]["user"]["edge_follow"]["page_info"]["end_cursor"]
+            # edges = response["data"]["user"]["edge_follow"]["edges"]
+            # for node in edges:
+            #     following.append(node["username"])
+            #     print(node["username"])
+            #     count += 1

@@ -13,8 +13,10 @@ from string import ascii_letters, digits, punctuation
 from time import time, sleep
 from urllib.parse import urlencode
 
+# Import local packages
+from .utils import download, download_tuple, concurrent, mkdir, get_dict_from_file, write_dict_to_file
+
 # Import external packages
-import jafa
 from PIL import Image
 
 __all__ = ["Instagram", "download_instagram_by_shortcode"]
@@ -40,13 +42,13 @@ def download_instagram_by_shortcode(shortcode):
             content_url = node["display_resources"][-1]["src"]
             # Check to ensure content isn't gone from Facebook's CDN
             if requests.get(content_url).text != "Gone":
-                jafa.download(content_url, "{}.jpg".format(filename))
+                download(content_url, "{}.jpg".format(filename))
         elif node["__typename"] == "GraphVideo":
             content_url = node["video_url"]
             # Check to ensure content isn't gone from Facebook's CDN
             if requests.get(content_url).text != "Gone":
-                jafa.download(content_url, "{}.jpg".format(filename))
-            jafa.download(content_url, "{}.mp4".format(filename))
+                download(content_url, "{}.jpg".format(filename))
+            download(content_url, "{}.mp4".format(filename))
         else:
             pass
 
@@ -119,7 +121,7 @@ class Instagram:
         """
         # Create ~/.cloudubrst directory if necessary
         # Used to store session
-        jafa.mkdir(Path.home().joinpath(".cloudburst"))
+        mkdir(Path.home().joinpath(".cloudburst"))
 
         # Login user
         self.cache_file = Path.home().joinpath(
@@ -132,218 +134,30 @@ class Instagram:
         self.is_logged_in = False
         self.__login()
 
-        # Try to joad JSON file for user
-        self.json = jafa.get_dict_from_file("{}.json".format(username))
-        # Get current UNIX epoch timestamp for record keeping purposes
-        self.timestamp = int(time())
-        # If the file can't be found
-        if self.json == None:
-            # Retrieve JSON profile for user
-            data = self.__a_query(username,
-                                  login_required=True)["graphql"]["user"]
+        # Retrieve JSON profile for user
+        data = self.__a_query(username, login_required=True)["graphql"]["user"]
 
-            # Gather profile data
-            self.username = username
-            self.id = data["id"]
-            self.name = data["full_name"]
-            self.biography = data["biography"]
-            self.url = data["external_url"]
-            self.following = data["edge_follow"]["count"]
-            self.followers = data["edge_followed_by"]["count"]
-            self.media_count = self.__graphql_query(
-                "d496eb541e5c789274548bf473cc553e", {
-                    "id": self.id,
-                    "first": 1,
-                })["data"]["user"]["edge_owner_to_timeline_media"]["count"]
-            self.profile_pic = data["profile_pic_url_hd"]
-            self.private = data["is_private"]
-            self.verified = data["is_verified"]
-            self.overall_category_name = data["overall_category_name"]
-            self.business_category_name = data["business_category_name"]
-            self.category_id = data["category_id"]
-            self.connected_facebook = data["connected_fb_page"]
+        # Gather profile data
+        self.username = username
+        self.id = data["id"]
+        self.name = data["full_name"]
+        self.biography = data["biography"]
+        self.url = data["external_url"]
+        self.following = data["edge_follow"]["count"]
+        self.followers = data["edge_followed_by"]["count"]
+        self.media_count = self.__graphql_query(
+            "d496eb541e5c789274548bf473cc553e", {
+                "id": self.id,
+                "first": 1,
+            })["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+        self.profile_pic = data["profile_pic_url_hd"]
+        self.private = data["is_private"]
+        self.verified = data["is_verified"]
+        self.overall_category_name = data["overall_category_name"]
+        self.business_category_name = data["business_category_name"]
+        self.category_id = data["category_id"]
+        self.connected_facebook = data["connected_fb_page"]
 
-            # Fill JSON file with profile data
-            self.json = {
-                "profile": {
-                    "username": self.username,
-                    "id": self.id,
-                    "name": self.name,
-                    "biography": self.biography,
-                    "url": self.url,
-                    "following": self.following,
-                    "followers": self.followers,
-                    "media count": self.media_count,
-                    "profile pic": self.profile_pic,
-                    "private": self.private,
-                    "verified": self.verified,
-                    "business": {
-                        "overall category": self.overall_category_name,
-                        "category name": self.business_category_name,
-                        "category id": self.category_id,
-                    },
-                    "facebook": self.connected_facebook,
-                    "changes": {
-                        self.timestamp: {
-                            "name": self.name,
-                            "biography": self.biography,
-                            "url": self.url,
-                            "following": self.following,
-                            "followers": self.followers,
-                            "profile pic": self.profile_pic,
-                            "private": self.private,
-                            "verified": self.verified,
-                            "business": {
-                                "overall category": self.overall_category_name,
-                                "category name": self.business_category_name,
-                                "category id": self.category_id,
-                            },
-                            "facebook": self.connected_facebook,
-                        }
-                    },
-                },
-                "posts": [],
-                "stories": [],
-                "highlights": [],
-                "meta": {
-                    "created at": self.timestamp
-                },
-            }
-
-            # Get post shortcodes and fill posts with scaffold
-            self.shortcode_list = self.__get_post_shortcodes()
-            # No posts recorded for initial scaffold build
-            self.recorded_list = []
-            self.__build_post_scaffold()
-            self.__populate_post_scaffold()
-            self.story_ids = []
-            self.highlight_ids = []
-            self.__get_stories()
-            self.__get_highlights()
-            # Write JSON file to disk without spacing/indents
-            jafa.write_dict_to_file("{}.json".format(self.username),
-                                    self.json,
-                                    minimize=True)
-
-        # If JSON file exists, read it into class attributes
-        else:
-            # Profile data gathered upon instantiation
-            self.username = self.json["profile"]["username"]
-            self.id = self.json["profile"]["id"]
-            self.name = self.json["profile"]["name"]
-            self.biography = self.json["profile"]["biography"]
-            self.url = self.json["profile"]["url"]
-            self.following = self.json["profile"]["following"]
-            self.followers = self.json["profile"]["followers"]
-            self.media_count = self.json["profile"]["media count"]
-            self.profile_pic = self.json["profile"]["profile pic"]
-            self.private = self.json["profile"]["private"]
-            self.verified = self.json["profile"]["verified"]
-            self.overall_category_name = self.json["profile"]["business"][
-                "overall category"]
-            self.business_category_name = self.json["profile"]["business"][
-                "category name"]
-            self.category_id = self.json["profile"]["business"]["category id"]
-            self.connected_facebook = self.json["profile"]["facebook"]
-
-            # Check for changes in profile, ignore unchangeable params
-            changes = {}
-            write_changes = True
-            data = self.__a_query(username,
-                                  login_required=True)["graphql"]["user"]
-            if self.name != data["full_name"]:
-                self.json["profile"]["name"] = data["full_name"]
-                changes.update({"name": data["full_name"]})
-            elif self.biography != data["biography"]:
-                self.json["profile"]["biography"] = data["biography"]
-                changes.update({"biography": data["biography"]})
-            elif self.url != data["external_url"]:
-                self.json["profile"]["url"] = data["external_url"]
-                changes.update({"url": data["external_url"]})
-            elif self.following != data["edge_follow"]["count"]:
-                self.json["profile"]["following"] = data["edge_follow"][
-                    "count"]
-                changes.update({"following": data["edge_follow"]["count"]})
-            elif self.followers != data["edge_followed_by"]["count"]:
-                self.json["profile"]["followers"] = data["edge_followed_by"][
-                    "count"]
-                changes.update(
-                    {"followers": data["edge_followed_by"]["count"]})
-            elif self.profile_pic != data["profile_pic_url_hd"]:
-                self.json["profile"]["profile_pic"] = data[
-                    "profile_pic_url_hd"]
-                changes.update({"profile pic": data["profile_pic_url_hd"]})
-            elif self.private != data["is_private"]:
-                self.json["profile"]["private"] = data["is_private"]
-                changes.update({"private": data["is_private"]})
-            elif self.verified != data["is_verified"]:
-                self.json["profile"]["verified"] = data["is_verified"]
-                changes.update({"verified": data["is_verified"]})
-            elif self.business_category_name != data["business_category_name"]:
-                self.json["profile"]["business"]["category name"] = data[
-                    "business_category_name"]
-                changes.update(
-                    {"business category name": data["business_category_name"]})
-            elif self.category_id != data["category_id"]:
-                self.json["profile"]["business"]["category id"] = data[
-                    "category_id"]
-                changes.update({"business category id": data["category_id"]})
-            elif self.overall_category_name != data["overall_category_name"]:
-                self.json["profile"]["business"]["overall category"] = data[
-                    "overall_category_name"]
-                changes.update({
-                    "business overall category":
-                    data["overall_category_name"]
-                })
-            elif self.connected_facebook != data["connected_fb_page"]:
-                self.json["profile"]["facebook"] = data["connected_fb_page"]
-                changes.update({"facebook": data["connected_fb_page"]})
-            else:
-                print("No changes to profile detected")
-                write_changes = False
-
-            # If changes are detected, write them to JSON file
-            if write_changes:
-                self.json["profile"]["changes"].update(
-                    {self.timestamp: changes})
-                jafa.write_dict_to_file("{}.json".format(self.username),
-                                        self.json,
-                                        minimize=True)
-
-            # Check if number of recorded posts are equivalent to number of posted posts
-            if (len(self.json["posts"]) != self.__graphql_query(
-                    "d496eb541e5c789274548bf473cc553e",
-                {
-                    "id": self.id,
-                    "first": 1,
-                })["data"]["user"]["edge_owner_to_timeline_media"]["count"]):
-                # Currently recorded posts
-                self.recorded_list = [
-                    post["shortcode"] for post in self.json["posts"]
-                    if post is not None
-                ]
-                # Udpate shortcode list
-                self.shortcode_list = self.__get_post_shortcodes()
-                # Add shortcodes to json["posts"] and write to disk
-                self.__build_post_scaffold()
-            else:
-                self.shortcode_list = [
-                    post["shortcode"] for post in self.json["posts"]
-                ]
-
-            self.__populate_post_scaffold()
-            # Get story list
-            self.story_ids = [
-                story_id["id"] for story_id in self.json["stories"]
-            ]
-            self.highlight_ids = [
-                highlight_id["id"] for highlight_id in self.json["highlights"]
-            ]
-            self.__get_stories()
-            self.__get_highlights()
-            jafa.write_dict_to_file("{}.json".format(self.username),
-                                    self.json,
-                                    minimize=True)
         self.__cache_session()
 
     ########################
@@ -448,17 +262,6 @@ class Instagram:
     # STATIC METHODS #
     ##################
     @staticmethod
-    def __download_tuple(tuple):
-        """ Helper method/workaround to allow for concurrent downloading of images 
-        
-        Args:
-            tuple (tuple): Tuple or url and filename to deconstruct
-        """
-        # Check to ensure content isn't gone from Facebook's CDN
-        # if requests.get(tuple[0]).text != "Gone":
-        jafa.download(tuple[0], tuple[1])
-
-    @staticmethod
     def __media_preview_to_image(media_preview):
         """ Transform a media_preview string into a PIL Image through Instagram's proprietary compression algorithm 
     
@@ -534,9 +337,6 @@ class Instagram:
         Returns:
             data (dict): JSON data from ?__a=1 query
         """
-        query_count = 0
-        max_queries_allowed = 2
-
         def __execute_a_query(query_url):
             try:
                 # Load data from query, using either logged in, or publically accessible page
@@ -545,18 +345,8 @@ class Instagram:
                 else:
                     return json.loads(requests.get(query_url).text)
             except:
-                # If unsuccessful, try again, up to max attempt number
-                query_count += 1
-                if query_count <= max_queries_allowed + 1:
-                    print(
-                        f"Error: couldn't retrieve data @ {query_url}. Retrying."
-                    )
-                    __a_query(query_url)
-                else:
-                    print(
-                        f"Error: couldn't retrieve data @ {query_url}. Passing."
-                    )
-                    return None
+                print(f"Error: couldn't retrieve data @ {query_url}. Passing.")
+                return None
 
         # Form query url and exexcute query
         query_url = "https://www.instagram.com/{}/?__a=1".format(query)
@@ -819,9 +609,9 @@ class Instagram:
                     except:
                         pass
                     # Write changes to JSON file
-                    jafa.write_dict_to_file("{}.json".format(self.username),
-                                            self.json,
-                                            minimize=True)
+                    write_dict_to_file("{}.json".format(self.username),
+                                       self.json,
+                                       minimize=True)
                 except:
                     print(
                         "Error gathering data for post https://www.instagram.com/p/{}"
@@ -831,7 +621,7 @@ class Instagram:
                 pass
 
         # Concurrently build post json from scaffold
-        jafa.concurrent(
+        concurrent(
             __build_post_from_scaffold,
             self.json["posts"],
             progress_bar=progress_bar,
@@ -937,7 +727,7 @@ class Instagram:
         response = self.__graphql_query(
             "ad99dd9d3646cc3c0dda65debcd266a7",
             {
-                "user_id" (str): (self.id),
+                "user_id": self.id,
                 "include_reel": True,
                 "include_highlight_reels": True,
             },
@@ -976,9 +766,92 @@ class Instagram:
     #     self.__graphql_query("d04b0a864b4b54837c0d870b0e77e076", {"id":str(self.id),"first":50})
     #     self.__graphql_query("d04b0a864b4b54837c0d870b0e77e076", {"id":str(self.id),"first":50,"after":end_cursor})
 
-    # def get_followers(self):
-    #     self.__graphql_query("c76146de99bb02f6415203be841dd25a", {"id":str(self.id),"first":50})
-    #     self.__graphql_query("c76146de99bb02f6415203be841dd25a", {"id":str(self.id),"first":50,"after":end_cursor})
+    def get_followers(self, progress_bar=True):
+        followers = []
+
+        if not self.private:
+            end_cursor = ""
+            # Set current count to length of the shortcode list
+            while len(followers) < self.followers - 5:
+                # Query GraphQL for Instagram shortcodes (max 50 at a time, can't parallelize)
+                response = self.__graphql_query(
+                    "c76146de99bb02f6415203be841dd25a", {
+                        "id": self.id,
+                        "first": 50,
+                        "after": end_cursor
+                    },
+                    login_required=True)
+                if response:
+                    # Record end cursor for next query if necessary
+                    end_cursor = response["data"]["user"]["edge_followed_by"][
+                        "page_info"]["end_cursor"]
+                    # Iterate through each post in the query
+                    for node in response["data"]["user"]["edge_followed_by"][
+                            "edges"]:
+                        # Grab shortcode, if not in list, add it to the list and increment count
+                        follower_username = node["node"]["username"]
+                        if follower_username not in followers:
+                            followers.append(follower_username)
+                            if progress_bar:
+                                print(
+                                    " Retreived {}% ({}/{}) of @{}'s followers"
+                                    .format(
+                                        round(
+                                            100 * len(followers) /
+                                            self.followers,
+                                            2,
+                                        ),
+                                        len(followers),
+                                        self.followers,
+                                        self.username,
+                                    ),
+                                    end="\r",
+                                    flush=True,
+                                )
+                        # If the shortcode list is up to date, terminate the loop
+                        else:
+                            break
+
+        # If user is private, print message and return empty list
+        else:
+            print("Shortcodes could not be accessed. User is private.")
+
+        return followers
+
+    def get_following_hashtag(self, username, progress_bar=True):
+        hashtags = []
+        p = False
+        try:
+            userid = self.__a_query(
+                username, login_required=True)["graphql"]["user"]["id"]
+        except:
+            print(username)
+            sleep(30)
+            try:
+                userid = self.__a_query(
+                    username, login_required=True)["graphql"]["user"]["id"]
+            except:
+                p = True
+
+        if p == False:
+            try:
+                if not self.private:
+                    response = self.__graphql_query(
+                        "e6306cc3dbe69d6a82ef8b5f8654c50b", {
+                            "id": userid,
+                        },
+                        login_required=True)
+                    for node in response["data"]["user"][
+                            "edge_following_hashtag"]["edges"]:
+                        hashtags.append(node["node"]["name"])
+
+                # If user is private, print message and return empty list
+                else:
+                    print("Shortcodes could not be accessed. User is private.")
+            except:
+                print(username)
+
+        return hashtags
 
     # def get_tagged_content(self):
     #     self.__graphql_query("ff260833edf142911047af6024eb634a", {"id":str(self.id),"first":50})
@@ -989,7 +862,7 @@ class Instagram:
     #################################
     def download_profile_picture(self):
         """ Download an Instagram user's profile picure in its highest quality """
-        jafa.download(self.profile_pic, "{}.jpg".format(self.username))
+        download(self.profile_pic, "{}.jpg".format(self.username))
 
     def get_previews(self, mode="save", output_dir="previews"):
         """Get all media previews for a user
@@ -1001,7 +874,7 @@ class Instagram:
             results (list): List of all media previews as numpy arrays
         """
         # Make directory is necessary
-        jafa.mkdir(output_dir)
+        mkdir(output_dir)
 
         # Get media previews
         previews = []
@@ -1045,7 +918,7 @@ class Instagram:
             progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        jafa.mkdir(output_dir)
+        mkdir(output_dir)
         # Fill stories list with filenames and url's to hd thumbniails
         stories_list = []
         for story in self.json["stories"]:
@@ -1058,8 +931,8 @@ class Instagram:
                 pass
 
         # Concurently download images
-        jafa.concurrent(
-            self.__download_tuple,
+        concurrent(
+            download_tuple,
             stories_list,
             progress_bar=progress_bar,
             desc="Downloading stories",
@@ -1073,7 +946,7 @@ class Instagram:
             progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        jafa.mkdir(output_dir)
+        mkdir(output_dir)
         # Fill highlights list with filenames and url's to hd thumbniails
         highlights_list = []
         for highlights in self.json["highlights"]:
@@ -1088,8 +961,8 @@ class Instagram:
                 pass
 
         # Concurently download images
-        jafa.concurrent(
-            self.__download_tuple,
+        concurrent(
+            download_tuple,
             highlights_list,
             progress_bar=progress_bar,
             desc="Downloading highlights",
@@ -1103,7 +976,7 @@ class Instagram:
             progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        jafa.mkdir(output_dir)
+        mkdir(output_dir)
         # Fill thumbnail list with filenames and url's to hd thumbniails
         thumbnail_list = []
         for post in self.json["posts"]:
@@ -1117,8 +990,8 @@ class Instagram:
                 pass
 
         # Concurently download images
-        jafa.concurrent(
-            self.__download_tuple,
+        concurrent(
+            download_tuple,
             thumbnail_list,
             progress_bar=progress_bar,
             desc="Downloading thumbnails",
@@ -1132,7 +1005,7 @@ class Instagram:
             progress_bar (bool): Display progress of post download
         """
         # Create output directory, if necessary
-        jafa.mkdir(output_dir)
+        mkdir(output_dir)
         # Fill content list with filenames and url's to hd content
         content_list = []
         for post in self.json["posts"]:
@@ -1143,8 +1016,8 @@ class Instagram:
                 content_list.append((m["content"], filename))
 
         # Concurently download images/videos
-        jafa.concurrent(
-            self.__download_tuple,
+        concurrent(
+            download_tuple,
             content_list,
             progress_bar=progress_bar,
             desc="Downloading posts",
