@@ -21,6 +21,9 @@ pip3 install -e .
 A brief description of modules and submodules exists below.  
 For further information, see the [usage guide](https://concurrent-studio.github.io/cloudburst/).
 
+## To Do
+https://github.com/google/portrait-shadow-manipulation.git
+
 ### 📦 Modules + Submodules
 #### 🛠 Core Functions
 ##### Usage
