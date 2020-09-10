@@ -23,6 +23,7 @@ For further information, see the [usage guide](https://concurrent-studio.github.
 
 ## To Do
 https://github.com/google/portrait-shadow-manipulation.git
+https://github.com/sylnsfar/qrcode
 
 ### 📦 Modules + Submodules
 #### 🛠 Core Functions
