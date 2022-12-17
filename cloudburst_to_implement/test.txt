@@ -1,4 +1,0 @@
-## ⚠️  IMPLEMENT THESE FEATURES
-- NLP, text cleaning and scraping [tds](https://towardsdatascience.com/nlp-for-beginners-cleaning-preprocessing-text-data-ae8e306bef0f)
-- Lyric scraping [genius](https://towardsdatascience.com/nlp-for-beginners-cleaning-preprocessing-text-data-ae8e306bef0f) 
-

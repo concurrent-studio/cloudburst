@@ -3,9 +3,8 @@ from setuptools import setup, find_packages
 setup(name="cloudburst",
       version="0.1.4",
       packages=find_packages(exclude=['tests*']),
-      license="MIT",
-      description=
-      "A python package for computational design by CONCURRENT STUDIO\u2122",
+      license="Apache 2.0",
+      description="Quickly grab lots of data",
       long_description=open('README.md').read(),
       long_description_content_type='text/markdown',
       install_requires=find_packages(),
