@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
 	"requests",
-	"multiprocessing"
+	"multiprocess"
 ]
 dynamic = ["version"]
 
