@@ -9,14 +9,14 @@ A cloudburst of data, gathered through scraping
 ## ⏳ Installation
 ### 🐍 Pip
 ```bash
-pip3 install cloudburst
+python3 -m pip install cloudburst
 ```
 
 ### 🗃 Source
 ```bash
 git clone https://github.com/cwdt-us/cloudburst.git
 cd cloudburst
-pip3 install -e .
+python3 -m pip install -e .
 ```
 
 ## Documentation 
