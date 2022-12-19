@@ -4,6 +4,10 @@ import urllib.parse
 
 import requests
 
+class TwitterSession:
+	def __init__(self):
+		self.session = requests.Session()
+
 def get_credentials():
 	s = requests.Session()
 	s.get("https://twitter.com/elonmusk")
