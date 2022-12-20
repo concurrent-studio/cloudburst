@@ -30,7 +30,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "docs.cwdt.us/cloudburst"
+Documentation = "https://docs.cwdt.us/cloudburst"
 Issues = "https://github.com/cwdt-us/cloudburst/issues"
 Source = "https://github.com/cwdt-us/cloudburst"
 
