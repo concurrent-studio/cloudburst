@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import re
 import urllib.parse
 
 import requests
@@ -135,7 +136,7 @@ class TwitterSession:
 		user_info = self.user_info(username)
 		variables = {
 			"userId": user_info["id"],
-			"count": 100,
+			"count": 100,  # Can't do more than 100 at a time
 			"includePromotedContent": True,
 			"withQuickPromoteEligibilityTweetFields": True,
 			"withSuperFollowsUserFields": True,
@@ -176,28 +177,35 @@ class TwitterSession:
 			resp = self.session.get(tweets_replies_url, headers=self.headers).json()
 			for instruction in resp["data"]["user"]["result"]["timeline_v2"]["timeline"]["instructions"]:
 				if instruction["type"] == "TimelineAddEntries":
+					if len(instruction["entries"]) <= 2:
+						break
 					for entry in instruction["entries"]:
 						if entry["entryId"].startswith("cursor-bottom-"):
 							cursor = entry["content"]["value"]
 						elif entry["entryId"].startswith("tweet-"):
 							result = entry["content"]["itemContent"]["tweet_results"]["result"]
-							tweets.append({
+							tweet = {
 								"id": result["rest_id"],
+								"text": result["legacy"]["full_text"],
 								"created_at": result["legacy"]["created_at"],
 								"mentions": [
 									{"name": u["name"], "username": u["screen_name"]}
 									for u in result["legacy"]["entities"]["user_mentions"]
-								],
-								"urls": result["legacy"]["entities"]["urls"],
-								"hashtags": result["legacy"]["entities"]["hashtags"],
-								"symbols": result["legacy"]["entities"]["symbols"],
+									],
+								"urls": [u["expanded_url"] for u in result["legacy"]["entities"]["urls"]],
+								"hashtags": [h["text"] for h in result["legacy"]["entities"]["hashtags"]],
+								"stock_symbols": [s["text"] for s in result["legacy"]["entities"]["symbols"]],
 								"likes_count": result["legacy"]["favorite_count"],
 								"quote_count": result["legacy"]["quote_count"],
 								"reply_count": result["legacy"]["reply_count"],
 								"retweet_count": result["legacy"]["retweet_count"],
 								"retweeted": result["legacy"]["retweeted"],
-								"source": result["legacy"]["source"]
-							})
+								"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", result["legacy"]["source"])) else None,
+								"tweet_url": f"https://twitter.com/{username}/status/{result['rest_id']}"
+							}
+							if "quoted_status_result" in entry:
+								tweet["quoted_tweet"] = entry["quoted_status_result"]
+							tweets.append(tweet)
 			if cursor in cursors:
 				break
 			cursors.add(cursor)
