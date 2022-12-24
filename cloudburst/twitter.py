@@ -232,6 +232,21 @@ class TwitterSession:
 						tweets.append(self._parse_tweet_response(result, fetch_replies=fetch_replies))
 		return tweets
 
+	def search(self, query, fetch_replies=False):
+		"""Search for tweets"""
+		query = urllib.parse.quote(query)
+		search_url = f"https://twitter.com/i/api/2/search/adaptive.json?include_profile_interstitial_type=1&include_blocking=1&include_blocked_by=1&include_followed_by=1&include_want_retweets=1&include_mute_edge=1&include_can_dm=1&include_can_media_tag=1&include_ext_has_nft_avatar=1&include_ext_is_blue_verified=1&skip_status=1&cards_platform=Web-12&include_cards=1&include_ext_alt_text=true&include_ext_limited_action_results=false&include_quote_count=true&include_reply_count=1&tweet_mode=extended&include_ext_collab_control=true&include_entities=true&include_user_entities=true&include_ext_media_color=true&include_ext_media_availability=true&include_ext_sensitive_media_warning=true&include_ext_trusted_friends_metadata=true&send_error_codes=true&simple_quoted_tweet=true&q={query}&count=20&query_source=typed_query&pc=1&spelling_corrections=1&include_ext_edit_control=true&ext=mediaStats%2ChighlightedLabel%2ChasNftAvatar%2CvoiceInfo%2CbirdwatchPivot%2Cenrichments%2CsuperFollowMetadata%2CunmentionInfo%2CeditControl%2Ccollab_control%2Cvibe"
+		resp = self.session.get(search_url, headers=self.headers).json()
+		tweets = []
+		entries = resp["timeline"]["instructions"][0]["addEntries"]["entries"]
+		if len(entries) <= 2:
+			return []
+		for entry in entries:
+			if entry["entryId"].startswith("tweet-"):
+				statusId = entry["content"]["item"]["content"]["tweet"]["id"]
+				tweets.extend(self.get_tweet(statusId, fetch_replies=fetch_replies))
+		return tweets
+
 	def get_user_tweets(self, username, fetch_replies=False):
 		"""Get tweets and replies from a user"""
 		user_info = self.user_info(username)
