@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Push build artifacts to PyPI
-      uses: pypa/gh-action-pypi-publish@latest
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         skip_existing: true
         user: __token__
