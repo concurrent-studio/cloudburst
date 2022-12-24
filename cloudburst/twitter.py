@@ -5,12 +5,55 @@ import urllib.parse
 
 import requests
 
+def _parse_tweet_response(tweet_response):
+	typename = tweet_response.get("__typename")
+	# Handle tombstones and tweets with visibility results (a.k.a. tweets with warnings)
+	match typename:
+		case "TweetTombstone":
+			return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
+		case "TweetWithVisibilityResults":
+			tweet_result = tweet_response["tweet"]
+		case _:
+			tweet_result = tweet_response
+	# Get username from tweet author
+	username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
+	# Parse tweet
+	tweet = {
+		"id": tweet_result["rest_id"],
+		"text": tweet_result["legacy"]["full_text"],
+		"created_at": tweet_result["legacy"]["created_at"],
+		"mentions": [
+			{"name": u["name"], "username": u["screen_name"]}
+			for u in tweet_result["legacy"]["entities"]["user_mentions"]
+			],
+		"urls": [u["expanded_url"] for u in tweet_result["legacy"]["entities"]["urls"]],
+		"hashtags": [h["text"] for h in tweet_result["legacy"]["entities"]["hashtags"]],
+		"stock_symbols": [s["text"] for s in tweet_result["legacy"]["entities"]["symbols"]],
+		"likes_count": tweet_result["legacy"]["favorite_count"],
+		"quote_count": tweet_result["legacy"]["quote_count"],
+		"reply_count": tweet_result["legacy"]["reply_count"],
+		"retweet_count": tweet_result["legacy"]["retweet_count"],
+		"retweeted": tweet_result["legacy"]["retweeted"],
+		"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])) else None,
+		"tweet_url": f"https://twitter.com/{username}/status/{tweet_result['rest_id']}"
+	}
+	# Handle quoted tweets
+	if "quoted_status_result" in tweet_result:
+		tweet["quoted_tweet"] = _parse_tweet_response(tweet_result["quoted_status_result"]["result"])
+	# Handle tweets with visibility results (a.k.a. tweets with warnings)
+	if tweet_response["__typename"] == "TweetWithVisibilityResults":
+		tweet["visiblity_heading"] = tweet_response["tweetVisibilityNudge"]["tweet_visibility_nudge_actions"][0]["tweet_visibility_nudge_action_payload"]["heading"]
+	return tweet
+
+
 class TwitterSession:
 	def __init__(self):
+		"""Create a new TwitterSession object"""
 		self.session = requests.Session()
 		self._set_headers()
 
 	def _add_cookies(self):
+		"""Add necessary cookies to the session"""
 		self.session.get("https://twitter.com/elonmusk")
 		self.session.options('https://api.twitter.com/1.1/guest/activate.json', headers={
 			'authority': 'api.twitter.com',
@@ -58,6 +101,7 @@ class TwitterSession:
 			self.session.cookies.set("gt", resp.json()["guest_token"])
 
 	def _set_headers(self):
+		"""Set the headers for the session, allowing for twitter API calls"""
 		self._add_cookies()
 		self.headers = {
 			"authority": "twitter.com",
@@ -86,6 +130,7 @@ class TwitterSession:
 		return requests.get(queryURL, headers=self.headers).json()[0]["screen_name"]
 
 	def user_info(self, username):
+		"""Get a user's info"""
 		variables = {
 			'screen_name': username,
 			'withSafetyModeUserFields': True,
@@ -175,6 +220,7 @@ class TwitterSession:
 			tweets_replies_base = "https://twitter.com/i/api/graphql/s0hG9oAmWEYVBqOLJP-TBQ/UserTweetsAndReplies?"
 			tweets_replies_url = tweets_replies_base + urllib.parse.urlencode(query_selection)
 			resp = self.session.get(tweets_replies_url, headers=self.headers).json()
+			# Iterate through all tweets in the response
 			for instruction in resp["data"]["user"]["result"]["timeline_v2"]["timeline"]["instructions"]:
 				if instruction["type"] == "TimelineAddEntries":
 					if len(instruction["entries"]) <= 2:
@@ -184,28 +230,7 @@ class TwitterSession:
 							cursor = entry["content"]["value"]
 						elif entry["entryId"].startswith("tweet-"):
 							result = entry["content"]["itemContent"]["tweet_results"]["result"]
-							tweet = {
-								"id": result["rest_id"],
-								"text": result["legacy"]["full_text"],
-								"created_at": result["legacy"]["created_at"],
-								"mentions": [
-									{"name": u["name"], "username": u["screen_name"]}
-									for u in result["legacy"]["entities"]["user_mentions"]
-									],
-								"urls": [u["expanded_url"] for u in result["legacy"]["entities"]["urls"]],
-								"hashtags": [h["text"] for h in result["legacy"]["entities"]["hashtags"]],
-								"stock_symbols": [s["text"] for s in result["legacy"]["entities"]["symbols"]],
-								"likes_count": result["legacy"]["favorite_count"],
-								"quote_count": result["legacy"]["quote_count"],
-								"reply_count": result["legacy"]["reply_count"],
-								"retweet_count": result["legacy"]["retweet_count"],
-								"retweeted": result["legacy"]["retweeted"],
-								"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", result["legacy"]["source"])) else None,
-								"tweet_url": f"https://twitter.com/{username}/status/{result['rest_id']}"
-							}
-							if "quoted_status_result" in entry:
-								tweet["quoted_tweet"] = entry["quoted_status_result"]
-							tweets.append(tweet)
+							tweets.append(_parse_tweet_response(result))
 			if cursor in cursors:
 				break
 			cursors.add(cursor)
