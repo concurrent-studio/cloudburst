@@ -5,47 +5,6 @@ import urllib.parse
 
 import requests
 
-def _parse_tweet_response(tweet_response):
-	typename = tweet_response.get("__typename")
-	# Handle tombstones and tweets with visibility results (a.k.a. tweets with warnings)
-	match typename:
-		case "TweetTombstone":
-			return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
-		case "TweetWithVisibilityResults":
-			tweet_result = tweet_response["tweet"]
-		case _:
-			tweet_result = tweet_response
-	# Get username from tweet author
-	username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
-	# Parse tweet
-	tweet = {
-		"id": tweet_result["rest_id"],
-		"text": tweet_result["legacy"]["full_text"],
-		"created_at": tweet_result["legacy"]["created_at"],
-		"mentions": [
-			{"name": u["name"], "username": u["screen_name"]}
-			for u in tweet_result["legacy"]["entities"]["user_mentions"]
-			],
-		"urls": [u["expanded_url"] for u in tweet_result["legacy"]["entities"]["urls"]],
-		"hashtags": [h["text"] for h in tweet_result["legacy"]["entities"]["hashtags"]],
-		"stock_symbols": [s["text"] for s in tweet_result["legacy"]["entities"]["symbols"]],
-		"likes_count": tweet_result["legacy"]["favorite_count"],
-		"quote_count": tweet_result["legacy"]["quote_count"],
-		"reply_count": tweet_result["legacy"]["reply_count"],
-		"retweet_count": tweet_result["legacy"]["retweet_count"],
-		"retweeted": tweet_result["legacy"]["retweeted"],
-		"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])) else None,
-		"tweet_url": f"https://twitter.com/{username}/status/{tweet_result['rest_id']}"
-	}
-	# Handle quoted tweets
-	if "quoted_status_result" in tweet_result:
-		tweet["quoted_tweet"] = _parse_tweet_response(tweet_result["quoted_status_result"]["result"])
-	# Handle tweets with visibility results (a.k.a. tweets with warnings)
-	if tweet_response["__typename"] == "TweetWithVisibilityResults":
-		tweet["visiblity_heading"] = tweet_response["tweetVisibilityNudge"]["tweet_visibility_nudge_actions"][0]["tweet_visibility_nudge_action_payload"]["heading"]
-	return tweet
-
-
 class TwitterSession:
 	def __init__(self):
 		"""Create a new TwitterSession object"""
@@ -124,6 +83,52 @@ class TwitterSession:
 			"x-twitter-client-language": "en"
 		}
 
+	def _parse_tweet_response(self, tweet_response, fetch_replies=False):
+		typename = tweet_response.get("__typename")
+		# Handle tombstones and tweets with visibility results (a.k.a. tweets with warnings)
+		match typename:
+			case "TweetTombstone":
+				return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
+			case "TweetWithVisibilityResults":
+				tweet_result = tweet_response["tweet"]
+			case _:
+				tweet_result = tweet_response
+		# Get username from tweet author
+		username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
+		# Parse tweet
+		tweet = {
+			"id": tweet_result["rest_id"],
+			"text": tweet_result["legacy"]["full_text"],
+			"created_at": tweet_result["legacy"]["created_at"],
+			"mentions": [
+				{"name": u["name"], "username": u["screen_name"]}
+				for u in tweet_result["legacy"]["entities"]["user_mentions"]
+				],
+			"urls": [u["expanded_url"] for u in tweet_result["legacy"]["entities"]["urls"]],
+			"hashtags": [h["text"] for h in tweet_result["legacy"]["entities"]["hashtags"]],
+			"stock_symbols": [s["text"] for s in tweet_result["legacy"]["entities"]["symbols"]],
+			"likes_count": tweet_result["legacy"]["favorite_count"],
+			"quote_count": tweet_result["legacy"]["quote_count"],
+			"reply_count": tweet_result["legacy"]["reply_count"],
+			"retweet_count": tweet_result["legacy"]["retweet_count"],
+			"retweeted": tweet_result["legacy"]["retweeted"],
+			"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])) else None,
+			"tweet_url": f"https://twitter.com/{username}/status/{tweet_result['rest_id']}"
+		}
+		# Handle replied tweets
+		if (replied_to_username := tweet_result["legacy"].get("in_reply_to_username")) and (replied_to_id := tweet_result["legacy"].get("in_reply_to_status_id_str")):
+			if fetch_replies:
+				tweet["in_reply_to"] = self.get_tweet(replied_to_id)
+			else:
+				tweet["in_reply_to_url"] = f"https://twitter.com/{replied_to_username}/status/{replied_to_id}"
+		# Handle quoted tweets
+		if "quoted_status_result" in tweet_result:
+			tweet["quoted_tweet"] = self._parse_tweet_response(tweet_result["quoted_status_result"]["result"])
+		# Handle tweets with visibility results (a.k.a. tweets with warnings)
+		if tweet_response["__typename"] == "TweetWithVisibilityResults":
+			tweet["visiblity_heading"] = tweet_response["tweetVisibilityNudge"]["tweet_visibility_nudge_actions"][0]["tweet_visibility_nudge_action_payload"]["heading"]
+		return tweet
+
 	def get_username(self, userId):
 		"""Get a username from a person's userId"""
 		queryURL = f"https://api.twitter.com/1.1/users/lookup.json?user_id={userId}"
@@ -176,7 +181,58 @@ class TwitterSession:
 				"affiliates": result["affiliates_highlighted_label"].get("label", {}).get("description", None)
 		}
 
-	def get_user_tweets(self, username):
+	def get_tweet(self, status_code, fetch_replies=False):
+		"""Get a tweet given its status code"""
+		tweet_url = "https://twitter.com/i/api/graphql/-mbYIJl8o1KjY_4prcJ4ZQ/TweetDetail?"
+		tweet_variables = {
+			'focalTweetId': status_code,
+			'with_rux_injections': False,
+			'includePromotedContent': True,
+			'withCommunity': True,
+			'withQuickPromoteEligibilityTweetFields': True,
+			'withBirdwatchNotes': True,
+			'withSuperFollowsUserFields': True,
+			'withDownvotePerspective': False,
+			'withReactionsMetadata': False,
+			'withReactionsPerspective': False,
+			'withSuperFollowsTweetFields': True,
+			'withVoice': True,
+			'withV2Timeline': True
+		}
+		tweet_features = {
+			'responsive_web_twitter_blue_verified_badge_is_enabled': True,
+			'verified_phone_label_enabled': False,
+			'responsive_web_graphql_timeline_navigation_enabled': True,
+			'unified_cards_ad_metadata_container_dynamic_card_content_query_enabled': True,
+			'tweetypie_unmention_optimization_enabled': True,
+			'responsive_web_uc_gql_enabled': True,
+			'vibe_api_enabled': True,
+			'responsive_web_edit_tweet_api_enabled': True,
+			'graphql_is_translatable_rweb_tweet_is_translatable_enabled': True,
+			'standardized_nudges_misinfo': True,
+			'tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled': False,
+			'interactive_text_enabled': True,
+			'responsive_web_text_conversations_enabled': False,
+			'responsive_web_enhance_cards_enabled': True
+		}
+		tweet_query_selection = {
+			'variables': json.dumps(tweet_variables).replace(" ", ""),
+			'features': json.dumps(tweet_features).replace(" ", "")
+		}
+		tweet_query_url = tweet_url + urllib.parse.urlencode(tweet_query_selection)
+		resp = self.session.get(tweet_query_url, headers=self.headers).json()
+		tweets = []
+		for instruction in resp["data"]["threaded_conversation_with_injections_v2"]["instructions"]:
+			if instruction["type"] == "TimelineAddEntries":
+				if len(instruction["entries"]) <= 2:
+					break
+				for entry in instruction["entries"]:
+					if entry["entryId"].startswith("tweet-"):
+						result = entry["content"]["itemContent"]["tweet_results"]["result"]
+						tweets.append(self._parse_tweet_response(result, fetch_replies=fetch_replies))
+		return tweets
+
+	def get_user_tweets(self, username, fetch_replies=False):
 		"""Get tweets and replies from a user"""
 		user_info = self.user_info(username)
 		variables = {
@@ -230,7 +286,7 @@ class TwitterSession:
 							cursor = entry["content"]["value"]
 						elif entry["entryId"].startswith("tweet-"):
 							result = entry["content"]["itemContent"]["tweet_results"]["result"]
-							tweets.append(_parse_tweet_response(result))
+							tweets.append(self._parse_tweet_response(result, fetch_replies=fetch_replies))
 			if cursor in cursors:
 				break
 			cursors.add(cursor)
