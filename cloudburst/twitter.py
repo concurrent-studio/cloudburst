@@ -85,7 +85,7 @@ class TwitterSession:
 
 	def _parse_tweet_response(self, tweet_response, fetch_replies=False):
 		typename = tweet_response.get("__typename")
-		# Handle tombstones and tweets with visibility results (a.k.a. tweets with warnings)
+		# Handle tombstones and tweets with visibility results (a.k.a. tweets from affiliated accounts like Russian state media)
 		match typename:
 			case "TweetTombstone":
 				return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
@@ -124,9 +124,12 @@ class TwitterSession:
 		# Handle quoted tweets
 		if "quoted_status_result" in tweet_result:
 			tweet["quoted_tweet"] = self._parse_tweet_response(tweet_result["quoted_status_result"]["result"])
-		# Handle tweets with visibility results (a.k.a. tweets with warnings)
+		# Handle tweets with visibility results (a.k.a. tweets from affiliated accounts like russian state media)
 		if tweet_response["__typename"] == "TweetWithVisibilityResults":
-			tweet["visiblity_heading"] = tweet_response["tweetVisibilityNudge"]["tweet_visibility_nudge_actions"][0]["tweet_visibility_nudge_action_payload"]["heading"]
+			if tweet_response.get("tweetVisibilityNudge"):
+				tweet["visiblity_heading"] = tweet_response["tweetVisibilityNudge"]["tweet_visibility_nudge_actions"][0]["tweet_visibility_nudge_action_payload"]["heading"]
+			else:
+				tweet["visiblity_heading"]  = tweet_result["core"]["user_results"]["result"]["affiliates_highlighted_label"]["label"]["description"]
 		return tweet
 
 	def get_username(self, userId):
