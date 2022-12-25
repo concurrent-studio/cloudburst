@@ -115,7 +115,7 @@ class TwitterSession:
 		}
 		match = re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])
 		if match:
-			tweet["source"]
+			tweet["source"] = match.group()
 		# Handle replied tweets
 		if (replied_to_username := tweet_result["legacy"].get("in_reply_to_username")) and (replied_to_id := tweet_result["legacy"].get("in_reply_to_status_id_str")):
 			if fetch_replies:
