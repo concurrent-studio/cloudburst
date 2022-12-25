@@ -86,14 +86,18 @@ class TwitterSession:
 	def _parse_tweet_response(self, tweet_response, fetch_replies=False):
 		typename = tweet_response.get("__typename")
 		# Handle tombstones and tweets with visibility results (a.k.a. tweets from affiliated accounts like Russian state media)
+		tweet_result = tweet_response
 		if typename == "TweetTombstone":
 			return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
-		elif typename == "withVisibilityResults":
-			tweet_result = tweet_response["tweet"]
-		else:
-			tweet_result = tweet_response
+		elif typename == "TweetWithVisibilityResults":
+			tweet_result = tweet_result["tweet"]
 		# Get username from tweet author
-		username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
+		try:
+			username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
+		except Exception as e:
+			print(json.dumps(tweet_result, indent=2))
+			print(e)
+			exit()
 		# Parse tweet
 		tweet = {
 			"id": tweet_result["rest_id"],
@@ -117,7 +121,9 @@ class TwitterSession:
 		if match:
 			tweet["source"] = match.group()
 		# Handle replied tweets
-		if (replied_to_username := tweet_result["legacy"].get("in_reply_to_username")) and (replied_to_id := tweet_result["legacy"].get("in_reply_to_status_id_str")):
+		replied_to_username = tweet_result["legacy"].get("in_reply_to_username")
+		replied_to_id = tweet_result["legacy"].get("in_reply_to_status_id_str")
+		if replied_to_username and replied_to_id:
 			if fetch_replies:
 				tweet["in_reply_to"] = self.get_tweet(replied_to_id)
 			else:
