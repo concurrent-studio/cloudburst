@@ -86,13 +86,12 @@ class TwitterSession:
 	def _parse_tweet_response(self, tweet_response, fetch_replies=False):
 		typename = tweet_response.get("__typename")
 		# Handle tombstones and tweets with visibility results (a.k.a. tweets from affiliated accounts like Russian state media)
-		match typename:
-			case "TweetTombstone":
-				return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
-			case "TweetWithVisibilityResults":
-				tweet_result = tweet_response["tweet"]
-			case _:
-				tweet_result = tweet_response
+		if typename == "TweetTombstone":
+			return {"tomstone": tweet_response["tombstone"]["text"]["text"]}
+		elif typename == "withVisibilityResults":
+			tweet_result = tweet_response["tweet"]
+		else:
+			tweet_result = tweet_response
 		# Get username from tweet author
 		username = tweet_result["core"]["user_results"]["result"]["legacy"]["screen_name"]
 		# Parse tweet
@@ -112,9 +111,11 @@ class TwitterSession:
 			"reply_count": tweet_result["legacy"]["reply_count"],
 			"retweet_count": tweet_result["legacy"]["retweet_count"],
 			"retweeted": tweet_result["legacy"]["retweeted"],
-			"source": match.group() if(match := re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])) else None,
 			"tweet_url": f"https://twitter.com/{username}/status/{tweet_result['rest_id']}"
 		}
+		match = re.search(r"(?<=\>).+(?=\<)", tweet_result["legacy"]["source"])
+		if match:
+			tweet["source"]
 		# Handle replied tweets
 		if (replied_to_username := tweet_result["legacy"].get("in_reply_to_username")) and (replied_to_id := tweet_result["legacy"].get("in_reply_to_status_id_str")):
 			if fetch_replies:
